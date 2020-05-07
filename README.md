@@ -1,0 +1,2 @@
+# VRCHaptics
+ VRC Haptics
