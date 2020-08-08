@@ -1,12 +1,28 @@
 25 Piece Cables
 https://www.amazon.com/25Pcs-Remote-Control-Extension-Female/dp/B07L28M5W4/ref=sr_1_12?dchild=1&keywords=servo+extension+cable&qid=1588999150&sr=8-12
+
+Long Cables
+https://www.amazon.com/gp/product/B01HLUZQ5A/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1
+
 Jumper Wire (to be divided to 2)
 https://www.sparkfun.com/products/13164
+https://www.amazon.com/gp/product/B016RJ8S42/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
+
 Battery
 https://www.sparkfun.com/products/13855
+https://www.adafruit.com/product/2011
+
 Controller
 https://www.sparkfun.com/products/13907
+https://www.amazon.com/gp/product/B01MG9BNEN/ref=ppx_yo_dt_b_asin_title_o04_s01?ie=UTF8&psc=1
+
 Vibe Motor
 https://www.digikey.com/product-detail/en/1201/1528-1177-ND/5353637/?itemSeq=325918176
+https://www.amazon.com/gp/product/B07Q1ZV4MJ/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&psc=1
+
 Header 3x10
 https://www.digikey.com/product-detail/en/TSW-110-08-T-T-RA/SAM12342-ND/6692542/?itemSeq=325918179
+https://www.amazon.com/gp/product/B06ZZN8L9S/ref=ppx_yo_dt_b_asin_title_o04_s01?ie=UTF8&psc=1
+
+Nylon Strap 1 inch
+https://www.amazon.com/gp/product/B01KTVB0LC/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1
