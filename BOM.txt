@@ -1,0 +1,12 @@
+25 Piece Cables
+https://www.amazon.com/25Pcs-Remote-Control-Extension-Female/dp/B07L28M5W4/ref=sr_1_12?dchild=1&keywords=servo+extension+cable&qid=1588999150&sr=8-12
+Jumper Wire (to be divided to 2)
+https://www.sparkfun.com/products/13164
+Battery
+https://www.sparkfun.com/products/13855
+Controller
+https://www.sparkfun.com/products/13907
+Vibe Motor
+https://www.digikey.com/product-detail/en/1201/1528-1177-ND/5353637/?itemSeq=325918176
+Header 3x10
+https://www.digikey.com/product-detail/en/TSW-110-08-T-T-RA/SAM12342-ND/6692542/?itemSeq=325918179
