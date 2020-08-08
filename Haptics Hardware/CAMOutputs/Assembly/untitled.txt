@@ -1,0 +1,8 @@
+Partlist exported from C:/Users/bjames/Documents/EAGLE/projects/Haptics/untitled.sch at 7/9/2020 1:24 PM
+
+Qty Value                           Device                          Package                  Parts                                                                 Description                          MF MPN OC_FARNELL OC_NEWARK POPULARITY PROD_ID     SF_ID     SF_SKU    VALUE
+16                                  MA03-1                          MA03-1                   C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16 PIN HEADER                                  unknown    unknown   48                                              
+16  100                             100OHM-VERT-1/4W-1%             AXIAL-0.1                R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16 100Ω resistor                                                               RES-12181                       100  
+16  600mA/40V                       2N2222-NPN-TO92-EBC             TO92-EBC                 Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, Q16 NPN Transistror                                                  0                                               
+1   ESP32_THING_W_ANT_KEEPOUT       ESP32_THING_W_ANT_KEEPOUT       ESP32_THING              B1                                                                    SparkFun ESP32 Thing Board                                                              DEV-13907                
+1   MOMENTARY-SWITCH-SPST-PTH-6.0MM MOMENTARY-SWITCH-SPST-PTH-6.0MM TACTILE_SWITCH_PTH_6.0MM S1                                                                    Momentary Switch (Pushbutton) - SPST                                         SWCH-08441           COM-00097      
