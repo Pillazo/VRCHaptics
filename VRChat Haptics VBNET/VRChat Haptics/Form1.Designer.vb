@@ -23,6 +23,7 @@ Partial Class Form1
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
         Me.MainTimer = New System.Windows.Forms.Timer(Me.components)
         Me.NumericUpDown1 = New System.Windows.Forms.NumericUpDown()
         Me.Label14 = New System.Windows.Forms.Label()
@@ -51,6 +52,7 @@ Partial Class Form1
         Me.EditDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RemoveDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SetWifiOnDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.TestDeviceOutputsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AvatarToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.LoadAvatarToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RotateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -70,7 +72,6 @@ Partial Class Form1
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.TestDeviceOutputsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         CType(Me.NumericUpDown1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
@@ -266,26 +267,32 @@ Partial Class Form1
         'AddDeviceToolStripMenuItem
         '
         Me.AddDeviceToolStripMenuItem.Name = "AddDeviceToolStripMenuItem"
-        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.AddDeviceToolStripMenuItem.Text = "Add Device"
         '
         'EditDeviceToolStripMenuItem
         '
         Me.EditDeviceToolStripMenuItem.Name = "EditDeviceToolStripMenuItem"
-        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.EditDeviceToolStripMenuItem.Text = "Edit Device"
         '
         'RemoveDeviceToolStripMenuItem
         '
         Me.RemoveDeviceToolStripMenuItem.Name = "RemoveDeviceToolStripMenuItem"
-        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.RemoveDeviceToolStripMenuItem.Text = "Remove Device"
         '
         'SetWifiOnDeviceToolStripMenuItem
         '
         Me.SetWifiOnDeviceToolStripMenuItem.Name = "SetWifiOnDeviceToolStripMenuItem"
-        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.SetWifiOnDeviceToolStripMenuItem.Text = "Set Wifi on Device"
+        '
+        'TestDeviceOutputsToolStripMenuItem
+        '
+        Me.TestDeviceOutputsToolStripMenuItem.Name = "TestDeviceOutputsToolStripMenuItem"
+        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.TestDeviceOutputsToolStripMenuItem.Text = "Test Device Outputs"
         '
         'AvatarToolStripMenuItem
         '
@@ -414,12 +421,6 @@ Partial Class Form1
         Me.Label1.TabIndex = 63
         Me.Label1.Text = "Intensity"
         '
-        'TestDeviceOutputsToolStripMenuItem
-        '
-        Me.TestDeviceOutputsToolStripMenuItem.Name = "TestDeviceOutputsToolStripMenuItem"
-        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
-        Me.TestDeviceOutputsToolStripMenuItem.Text = "Test Device Outputs"
-        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -437,6 +438,7 @@ Partial Class Form1
         Me.Controls.Add(Me.MenuStrip1)
         Me.Controls.Add(Me.TrackBar1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MainMenuStrip = Me.MenuStrip1
         Me.Name = "Form1"
         Me.Text = "VRChat Haptics"
