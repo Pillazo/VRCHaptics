@@ -20,15 +20,39 @@ Vibe Motor
 https://www.digikey.com/product-detail/en/1201/1528-1177-ND/5353637/?itemSeq=325918176
 https://www.amazon.com/gp/product/B07Q1ZV4MJ/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&psc=1
 
-Header 3x10
-https://www.digikey.com/product-detail/en/TSW-110-08-T-T-RA/SAM12342-ND/6692542/?itemSeq=325918179
+Headers
 https://www.amazon.com/gp/product/B06ZZN8L9S/ref=ppx_yo_dt_b_asin_title_o04_s01?ie=UTF8&psc=1
+https://www.sparkfun.com/products/116
+https://www.adafruit.com/product/392
 
 Nylon Strap 1 inch
 https://www.amazon.com/gp/product/B01KTVB0LC/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1
+
+Velcro strap
+https://www.homedepot.com/p/VELCRO-Brand-12-ft-x-3-4-in-One-Wrap-Strap-90340/202261925
 
 Bolt M3x20mm
 https://www.amazon.com/gp/product/B07CJLVC17/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
 
 Bolt M3x10mm
 https://www.amazon.com/gp/product/B07CK3RSN3/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
+
+Push button
+https://www.sparkfun.com/products/97
+https://www.adafruit.com/product/367
+
+Diode
+https://www.sparkfun.com/products/8589
+https://www.adafruit.com/product/755
+
+transistor
+https://www.sparkfun.com/products/13689
+https://www.adafruit.com/product/756
+
+resistor 100 ohm
+https://www.adafruit.com/product/4293
+https://www.sparkfun.com/products/14493
+
+resistor 10K ohm
+https://www.adafruit.com/product/2784
+https://www.sparkfun.com/products/14491
