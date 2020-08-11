@@ -1,0 +1,53 @@
+Controller:
+3D Prints (JT3DP Prices)
+	-Main Body Top - $11
+	-Main Body Board Holder - $8.50
+	-Main Body Battery Adafruit - $12 / Main body Battery Sparkfun - $10
+	-Main Body button - $0.50
+	-Main Body Clip - $8.50 / Main Body Strap Mount - $7
+Components
+	-Sparkfun ESP32 Thing - $19.28
+	-Battery - $13 Sparkfun, $12.50 Adafruit
+	-Circuit Board - $25, $2.50ea
+	-2x 20pos Headers - $11, $0.055ea
+	-16x 3pos headers - $11, $0.00825ea
+	-16x 100 ohm resistors - $0.75, 0.03ea
+	-10K ohm resisitor - $0.75, 0.03ea
+	-Push button - $2.50, 0.125ea
+	-Diode - $0.15ea
+	-16x Transistors - $1.95, $0.195ea
+	-4x M3x20mm bolt - $9, $0.09ea
+	-3x / 2x M3x10mm bolt - $7.65, $0.0765ea
+	
+Total:
+3D print for adafruit battery and strap mount - $39
+3D print for adafruit battery and clip mount - $40.5
+3D print for sparkfun battery and strap mount - $37
+3D print for sparkfun battery and clip mount - $38.5
+Components for adafruit battery - $39
+Components for sparkfun battery - $39.50
+
+Total adafruit battery cost = $78
+Total sparkfun battery cost = $76.5
+
+Node
+16x 3D Print - 1in - $4
+16x 3D Print - 0.75in - $3.50
+16x Vibration Motor - $15, $0.75ea
+16x Half Servo Cable - $8, $0.40ea
+Velcro 3/4in strap - $0.34/ft - 12ft = $4.08
+2x / 2x M3x10mm bolt - $7.65, $0.0765ea
+
+Cables
+	-Assorted length extensions - $12, $0.60ea
+	-1 meter length extensions - $21.47, $0.72ea
+	
+Velcro Straps
+
+
+Total: 16x - 1in $84.96, 5.31ea
+		   - .75in $76.8, 4.80ea
+
+Total controller + 16 Nodes = $153
+Total controller + 16 nodes + 16 1-meter cables  + 12ft velcro = $168.9
++ shipping for battery = 182.73

@@ -9,8 +9,8 @@ https://www.sparkfun.com/products/13164
 https://www.amazon.com/gp/product/B016RJ8S42/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
 
 Battery
-https://www.sparkfun.com/products/13855
-https://www.adafruit.com/product/2011
+https://www.sparkfun.com/products/13855 2Ah
+https://www.adafruit.com/product/2011 2Ah
 
 Controller
 https://www.sparkfun.com/products/13907
@@ -30,6 +30,7 @@ https://www.amazon.com/gp/product/B01KTVB0LC/ref=ppx_yo_dt_b_asin_title_o02_s00?
 
 Velcro strap
 https://www.homedepot.com/p/VELCRO-Brand-12-ft-x-3-4-in-One-Wrap-Strap-90340/202261925
+https://www.amazon.com/VELCRO-Brand-ONE-WRAP-Tape-Yard/dp/B00RPOY384/ref=sr_1_3?crid=8UO68HLWGVAC&dchild=1&keywords=velcro+one+wrap+3%2F4+inch&qid=1597075313&sprefix=velcro+one+wrap+3%2F4%2Caps%2C161&sr=8-3
 
 Bolt M3x20mm
 https://www.amazon.com/gp/product/B07CJLVC17/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1
@@ -40,19 +41,24 @@ https://www.amazon.com/gp/product/B07CK3RSN3/ref=ppx_yo_dt_b_asin_title_o00_s00?
 Push button
 https://www.sparkfun.com/products/97
 https://www.adafruit.com/product/367
+https://www.amazon.com/QTEATAK-Momentary-Tactile-Button-Switch/dp/B07VSNN9S2/ref=sr_1_3?dchild=1&keywords=mini+push+button+6x6mm&qid=1597075633&sr=8-3
 
 Diode
 https://www.sparkfun.com/products/8589
 https://www.adafruit.com/product/755
+https://www.amazon.com/MCIGICM-Rectifier-Electronic-Silicon-Doorbell/dp/B071YWNBVM/ref=sr_1_3?crid=26A1OCMH2UX07&dchild=1&keywords=1n4001+diode&qid=1597075548&sprefix=1N4001+%2Caps%2C184&sr=8-3
 
 transistor
 https://www.sparkfun.com/products/13689
 https://www.adafruit.com/product/756
+https://www.amazon.com/McIgIcM-2N2222-Transistor-2N2222A-Through/dp/B06XPWS52G/ref=sr_1_2?dchild=1&keywords=P2N2222A&qid=1597075583&sr=8-2
 
 resistor 100 ohm
 https://www.adafruit.com/product/4293
 https://www.sparkfun.com/products/14493
+https://www.amazon.com/Projects-100EP514100R-100-Resistors-Pack/dp/B00AVSDYFO/ref=sr_1_4?crid=3U87STVMRK3TZ&dchild=1&keywords=100+ohm+resistor+1%2F4+watt&qid=1597075672&sprefix=100+ohm+re%2Caps%2C164&sr=8-4
 
 resistor 10K ohm
 https://www.adafruit.com/product/2784
 https://www.sparkfun.com/products/14491
+https://www.amazon.com/Projects-100EP51410K0-10k-Resistors-Pack/dp/B0185FGYQA/ref=sr_1_3?dchild=1&keywords=10k+ohm+resistor+1%2F4+watt&qid=1597075697&sr=8-3
