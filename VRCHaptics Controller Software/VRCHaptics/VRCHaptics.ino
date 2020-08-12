@@ -251,30 +251,7 @@ void loop(){
   if (digitalRead(BUTTON_PIN) == LOW) {
     FactoryResetTimer = FactoryResetTimer + 1;
   }
-   if (digitalRead(BUTTON_PIN) == HIGH) {
-      if (FactoryResetTimer > 100){
-        Serial.println("Going to sleep");
-        digitalWrite(LED_PIN, LOW);
-        ledcWrite(0, 0);
-        ledcWrite(1, 0);
-        ledcWrite(2, 0);
-        ledcWrite(3, 0);
-        ledcWrite(4, 0);
-        ledcWrite(5, 0);
-        ledcWrite(6, 0);
-        ledcWrite(7, 0);
-        ledcWrite(8, 0);
-        ledcWrite(9, 0);
-        ledcWrite(10, 0);
-        ledcWrite(11, 0);
-        ledcWrite(12, 0);
-        ledcWrite(13, 0);
-        ledcWrite(14, 0);
-        ledcWrite(15, 0);        
-        delay(5000);
-        esp_deep_sleep_start();        
-      }
-      
+   if (digitalRead(BUTTON_PIN) == HIGH) {      
       if (FactoryResetTimer > 500){
         digitalWrite(LED_PIN, HIGH);
         delay(100);
@@ -307,11 +284,32 @@ void loop(){
         EEPROM.write(150,deviceNameLen);
         EEPROM.commit();
         delay(500);
-        Serial.begin(115200);
-        Serial.setTimeout(50);
         Serial.println("Factory Reset...");
         WiFiReset();    
         digitalWrite(LED_PIN, HIGH); 
+      }
+      
+      if (FactoryResetTimer > 100){
+        Serial.println("Going to sleep");
+        digitalWrite(LED_PIN, LOW);
+        ledcWrite(0, 0);
+        ledcWrite(1, 0);
+        ledcWrite(2, 0);
+        ledcWrite(3, 0);
+        ledcWrite(4, 0);
+        ledcWrite(5, 0);
+        ledcWrite(6, 0);
+        ledcWrite(7, 0);
+        ledcWrite(8, 0);
+        ledcWrite(9, 0);
+        ledcWrite(10, 0);
+        ledcWrite(11, 0);
+        ledcWrite(12, 0);
+        ledcWrite(13, 0);
+        ledcWrite(14, 0);
+        ledcWrite(15, 0);        
+        delay(5000);
+        esp_deep_sleep_start();        
       }
         FactoryResetTimer = 0;
     }

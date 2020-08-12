@@ -316,10 +316,12 @@ Public Class Form1
             Dim rcvbytes() As Byte = Multicaster.Receive(ep)
             Dim UDPString As String = System.Text.Encoding.ASCII.GetString(rcvbytes)
             For i = 0 To NodeDeviceNames.Count - 1
-                If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) And UDPString.Length = NodeDeviceNames(i).Length Then
-                    DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green
-                    DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
-                    NodeDeviceConnection(i) = 0
+                If UDPString.Length = NodeDeviceNames(i).Length Then
+                    If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) Then
+                        DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green
+                        DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
+                        NodeDeviceConnection(i) = 0
+                    End If
                 End If
             Next
         Catch ex As Exception
