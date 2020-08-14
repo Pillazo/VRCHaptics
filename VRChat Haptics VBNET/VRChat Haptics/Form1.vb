@@ -5,11 +5,10 @@
 'Different Avatar Offsets
 '
 
-
-Imports OpenTK
+Imports OpenTK  '3D display imports
 Imports OpenTK.Graphics
 Imports OpenTK.Graphics.OpenGL
-Imports System.ComponentModel
+Imports System.ComponentModel 'Other misc imports
 Imports System.Environment
 Imports System.Diagnostics
 
@@ -27,7 +26,7 @@ Public Class Form1
     Dim headR, RHandR, LHandR, ChestR, HipsR As Quaternion    'Rotations from VRC
     Dim RshoulderR, LShoulderR, RLAR, LLAR, RULR, LULR, RLLR, LLLR As Vector3 ' math'd rotations from bone positions
     Dim OPRTD, OPRID, OPLTD, OPLID, OPHead, OPHips, OPRFoot, OPLFoot As Vector3 'Other Player from debug
-    Dim HeadRM, RHandRM, LHandRM, ChestRM, HipsRM, RShoulderM, RLAM, LShoulderM, LLAM, RULM, RLLM, LULM, LLLM As Matrix4
+    Dim HeadRM, RHandRM, LHandRM, ChestRM, HipsRM, RShoulderM, RLAM, LShoulderM, LLAM, RULM, RLLM, LULM, LLLM As Matrix4 'Rotation matrixes
     Dim HeadVector, RHandV1, RHandV2, LHandV1, LHandV2 As Vector3 'Indicators on the 3D
     Dim CurrentRotation As Matrix4 = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
     Dim Enable3D As Boolean = True 'Enable or disable active 3D updates
@@ -51,8 +50,8 @@ Public Class Form1
     Dim rotateX, rotateY, positionX, positionY As Single    'Used for rotation math
     Dim zpos As Single = 2  'Zoom position
     Dim ypos As Single = -0.2 'Height of camera
-    Dim slowrotate As Boolean = True
-    Dim slowrotateY As Single = 0
+    Dim slowrotate As Boolean = True    'Slow spin of the model
+    Dim slowrotateY As Single = 0   'Slow spin rotation
     Public NodeDeviceNames As New List(Of String)    'Name of Device for reference like 'head' or 'right arm' kinda thing
     Public NodeOutputs As New List(Of List(Of Boolean)) 'Output of device
     Public NodeDeviceConnection As New List(Of Integer) 'Connection IP or type
@@ -63,24 +62,33 @@ Public Class Form1
     Public DeviceIndex As Integer   'for sharing to the other dialog for device editing
     Public DeviceMethod As Integer = 0  'for sharing to the other dialog for device editing
     Dim DGVupdating As Boolean = False  'DGVNode ignores updates if DGVDevice is changing it
-    Dim RootBones As List(Of String) = New List(Of String) From {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"}
+    Dim RootBones As List(Of String) = New List(Of String) From {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"}  'Names of root bones
 
-    Dim Avatarlocation As String
-    Dim Avatarpoints As New List(Of Vector3)
-    Dim Avatarcolors As Drawing.Color
-    Dim AvatarLoaded As Boolean = False
-    Dim Avatarnormals As New List(Of Vector3)
-    Dim AvatarRotation As Vector3
+    Dim Avatarlocation As String    'Avatar STL file location
+    Dim Avatarpoints As New List(Of Vector3)    'Avatar mesh face points
+    Dim Avatarcolors As Drawing.Color   'Color of avatar
+    Dim AvatarLoaded As Boolean = False 'Is the avatar loaded? bit
+    Dim Avatarnormals As New List(Of Vector3)   'Normal (face direction) of the mesh faces of the avatar
+    Dim AvatarRotation As Vector3   'Rotation of the avatar
 
-    Dim MulticastPort As Integer = 2002
-    Dim Multicaster As New System.Net.Sockets.UdpClient(MulticastPort)
-    Dim outputtestindex As Integer = 0
-    Public outputtest As Boolean = False
-    Dim intensity As Integer = 0
-    Public Settingschanged As Boolean = False
-    Dim VRCopen As Boolean = False
+    Dim MulticastPort As Integer = 2002 'Multicast port for UDP, matches controller's port
+    Dim Multicaster As New System.Net.Sockets.UdpClient(MulticastPort) 'Call out the UDP for use
+    Dim outputtestindex As Integer = 0  'For testing the outputs of the controller
+    Public outputtest As Boolean = False    'Output test is on / off
+    Dim intensity As Integer = 0    'Intensity slider
+    Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
+    Dim VRCopen As Boolean = False  'VRChat is open
 
-#Region "Debug Packet" 'Update this
+#Region "Debug Packet"
+    'Packet for 1 player looks like "Haptics:V1(Bone data)(rotation data)"
+    'Packet for 2+ players look like "Haptics:V1(Bone data)(rotation data)^^/^(Other player bone data)Otherplayername^/^(Other player bone data)Otherplayername"
+
+    'Example
+
+    '"Just Me - Haptics:V1(29.3, 45.8, -96.6)(29.7, 42.6, -95.3)(29.7, 43.2, -95.4)(29.9, 44.5, -96.7)(28.6, 44.6, -96.1)(31.3, 42.5, -96.7)(27.2, 42.6, -95.5)(32.1, 40.5, -95.4)(27.7, 40.6, -94.0)(30.8, 40.3, -96.0)(28.4, 40.3, -95.2)(31.0, 35.9, -94.4)(29.1, 35.7, -94.4)(31.5, 31.6, -95.4)(27.9, 31.6, -95.7)(0.2405493,0.06394769,0.01590426,-0.9683977)(0.7164925,0.2387804,0.6534851,0.05079648)(0.3226297,-0.2587059,-0.9103048,0.01809094)(0.2255801,-0.215687,-0.023443,-0.9497596)(0.9821816,0.003167251,-0.1876046,0.01067693)"
+    '"One more - Haptics:V1(80.3, 37.7, -334.1)(80.1, 34.3, -334.6)(80.1, 34.9, -334.6)(80.5, 36.6, -335.1)(79.2, 36.6, -334.4)(81.5, 34.7, -336.4)(77.6, 34.7, -334.5)(82.0, 32.3, -336.4)(77.7, 32.3, -334.2)(81.1, 32.0, -335.5)(78.8, 32.0, -334.2)(81.0, 27.7, -333.6)(80.3, 27.8, -332.9)(81.3, 23.5, -335.2)(79.0, 23.6, -333.8)(0.2701674,0.239546,-0.06961434,0.9299361)(-0.7548343,-0.001274519,-0.6484137,0.09891184)(-0.2426835,0.04793017,0.959358,0.135793)(0.04194229,0.2654545,0.006020525,0.963192)(-0.9635401,-0.003260065,0.2675398,0.001444333)^^/^(81.4, 29.9, -324.1)(81.4, 29.7, -324.4)(83.0, 29.9, -322.5)(83.1, 29.7, -322.7)(80.5, 32.7, -321.3)(80.2, 28.9, -321.3)(79.3, 22.3, -322.2)(81.3, 22.4, -321.3)Moogle1"
+    '"Two - Haptics:V1(76.9, 37.6, -323.9)(77.0, 34.2, -323.2)(77.0, 34.9, -323.2)(76.4, 36.6, -322.9)(77.9, 36.5, -323.3)(75.2, 34.7, -321.8)(79.5, 34.7, -322.6)(74.9, 32.2, -321.8)(79.4, 32.3, -322.7)(75.9, 32.0, -322.5)(78.4, 31.9, -323.3)(76.1, 27.8, -324.6)(77.2, 27.8, -325.0)(75.7, 23.6, -323.1)(78.4, 23.6, -323.7)(-0.03748857,0.936684,-0.3316957,-0.1058107)(-0.7507744,0.0998488,0.6527701,-0.01611204)(0.9126387,0.1561787,0.3777094,-0.005902914)(0.005238595,0.9890235,-0.07425836,-0.1276343)(0.1449823,0.004352957,0.9894212,0.002602346)^^/^(66.6, 30.4, -332.5)(66.8, 29.7, -333.0)(67.6, 30.3, -329.0)(68.0, 29.7, -328.7)(65.5, 36.4, -330.2)(66.1, 32.0, -330.4)(65.9, 23.0, -331.8)(67.0, 23.0, -328.8)Snoozeto^/^(80.5, 31.6, -329.4)(80.6, 31.4, -328.8)(78.9, 31.1, -330.5)(78.5, 30.6, -330.3)(81.5, 33.4, -332.4)(81.2, 29.5, -332.0)(81.8, 22.4, -331.6)(80.4, 22.4, -332.0)Moogle1"
+
     '===Local Player=== (bone root index too)
     '1. Head
     '2. Hips
@@ -134,20 +142,20 @@ Public Class Form1
     'WhiteList Name n
 #End Region
 
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load    'This event for the form load
 
         Dim p() As Process = Process.GetProcesses() 'Even though this program doesn't interface directly with VRChat, if the debug reader opens before VRC, then VRC may not create a debug file.
-        For i = 0 To p.Length - 1
-            If p(i).ProcessName = "VRChat" Then
-                VRCopen = True
+        For i = 0 To p.Length - 1   'Every process happening...
+            If p(i).ProcessName = "VRChat" Then 'If one of them is VRChat...
+                VRCopen = True  'Set VRCopen
             End If
         Next
 
-        Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"))
-        Multicaster.Client.Blocking = False
-        Multicaster.Client.ReceiveTimeout = 100
+        Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"))    'Set multicast IP address, matches on controller
+        Multicaster.Client.Blocking = False 'Dont allow it to block processing
+        Multicaster.Client.ReceiveTimeout = 100 'Timeout
 
-        If VRCopen = True Then
+        If VRCopen = True Then  'If VRC is open
             Try
                 filez = IO.Directory.GetFiles(AppDatafolder & dir, "*.txt").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest TXT file
                 If filez.Contains("output_log") Then 'output_log is in the default log file name
@@ -156,14 +164,14 @@ Public Class Form1
                     reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
                     LblLogStatus.Text = "Log file found, reading..."
                     LblLogStatus.ForeColor = Color.Green
-                    MainTimer.Enabled = True
-                    logfound = True
+                    MainTimer.Enabled = True    'Set main timer to begin running
+                    logfound = True 'Set log file found
                 Else
-                    LblLogStatus.Text = "Another TXT file was found?"
+                    LblLogStatus.Text = "Another TXT file was found?" 'Should only be the logs in the directory
                     LblLogStatus.ForeColor = Color.Red
                 End If
 
-            Catch ex As Exception
+            Catch ex As Exception   'Something went wrong...
                 LblLogStatus.Text = "Either no log yet or wrong directory, Retry every 5 seconds..."
                 LblLogStatus.ForeColor = Color.Orange
             End Try
@@ -177,12 +185,12 @@ Public Class Form1
 
         'Try to load last settings
         If IO.File.Exists(My.Settings.SettingsLoc) = True Then
-            OFDSettings.FileName = My.Settings.SettingsLoc
-            SettingsFileLoad()
+            OFDSettings.FileName = My.Settings.SettingsLoc  'Grab settings file from program memory location
+            SettingsFileLoad() 'Load it!
         End If
 
 
-        'Set initial values for model
+        'Set initial values for model, taken from my avatar =3
         head = New Vector3(-37.1, 49.4, -155.9) / 10
         hips = New Vector3(-37.1, 46.0, -155.9) / 10
         chest = New Vector3(-37.2, 46.6, -155.8) / 10
@@ -238,7 +246,9 @@ Public Class Form1
 
     End Sub
 
-    Private Sub RetryTimer_Tick(sender As Object, e As EventArgs) Handles RetryTimer.Tick
+    Private Sub RetryTimer_Tick(sender As Object, e As EventArgs) Handles RetryTimer.Tick   'This runs to find / handle VRChat closing and reopening
+
+        'This part is the same as abover in the form load event
         Dim p() As Process = Process.GetProcesses() 'Even though this program doesn't interface directly with VRChat, if the debug reader opens before VRC, then VRC may not create a debug file.
         VRCopen = False
         For i = 0 To p.Length - 1
@@ -309,63 +319,57 @@ Public Class Form1
     End Sub
 
     'UDP Receive
-    Public Sub udprcv()
-        Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)
+    Public Sub udprcv() 'Called from main timer, reads from controllers to see if they're online
+        Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)    'Setup end point, its for the UDP multicast
 
         Try
-            Dim rcvbytes() As Byte = Multicaster.Receive(ep)
-            Dim UDPString As String = System.Text.Encoding.ASCII.GetString(rcvbytes)
-            For i = 0 To NodeDeviceNames.Count - 1
-                If UDPString.Length = NodeDeviceNames(i).Length Then
-                    If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) Then
-                        DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green
+            Dim rcvbytes() As Byte = Multicaster.Receive(ep)    'Define the bytes, retrieve anything out there
+            Dim UDPString As String = System.Text.Encoding.ASCII.GetString(rcvbytes)    'Make those bytes into characters
+            For i = 0 To NodeDeviceNames.Count - 1  'For each controller we have defined in our program...
+                If UDPString.Length = NodeDeviceNames(i).Length Then    'Does the recieved UDP packet match the name in length at least?
+                    If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) Then 'If yes, does the name itself match?
+                        DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green    'Yes found it color the box
                         DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
-                        NodeDeviceConnection(i) = 0
+                        NodeDeviceConnection(i) = 0 'Reset timeout counter
                     End If
                 End If
             Next
         Catch ex As Exception
-            'RichTextBox1.Text = ex.ToString
         End Try
 
     End Sub
 
     'Main Timer
-    Private Sub MainTimer_Tick(sender As Object, e As EventArgs) Handles MainTimer.Tick 'fast tick
+    Private Sub MainTimer_Tick(sender As Object, e As EventArgs) Handles MainTimer.Tick 'fast tick, like 10ms
 
-        For i = 0 To NodeDeviceNames.Count + 1
-            udprcv()
+        For i = 0 To NodeDeviceNames.Count + 1 'For each controller we have, hit the UDP that many times... plus 1, so we get all names out there
+            udprcv()    'Call UDP recieve
         Next
 
-        For i = 0 To NodeDeviceNames.Count - 1
-            NodeDeviceConnection(i) = NodeDeviceConnection(i) + 1
-            If NodeDeviceConnection(i) > 300 Then
-                DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.White
+        For i = 0 To NodeDeviceNames.Count - 1 'for each device we have defined
+            NodeDeviceConnection(i) = NodeDeviceConnection(i) + 1   'Add 1 to a timer, which is reset if we get a name packet from the device
+            If NodeDeviceConnection(i) > 300 Then   'If its gotten past 3 seconds of no name..
+                DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.White 'Then mark it as default white
                 DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.White
             End If
         Next
 
-        If slowrotate = True Then
-            slowrotateY = slowrotateY + 0.5
+        If slowrotate = True Then   'That super sexy slow rotate of the model
+            slowrotateY = slowrotateY + 0.5 'Nice and slow, just like daddy likes it
         End If
 
         If VRCopen = True Then
             Readz = reader.ReadLine() 'get line from file stream
         End If
 
-        '"Just Me - Haptics:V1(29.3, 45.8, -96.6)(29.7, 42.6, -95.3)(29.7, 43.2, -95.4)(29.9, 44.5, -96.7)(28.6, 44.6, -96.1)(31.3, 42.5, -96.7)(27.2, 42.6, -95.5)(32.1, 40.5, -95.4)(27.7, 40.6, -94.0)(30.8, 40.3, -96.0)(28.4, 40.3, -95.2)(31.0, 35.9, -94.4)(29.1, 35.7, -94.4)(31.5, 31.6, -95.4)(27.9, 31.6, -95.7)(0.2405493,0.06394769,0.01590426,-0.9683977)(0.7164925,0.2387804,0.6534851,0.05079648)(0.3226297,-0.2587059,-0.9103048,0.01809094)(0.2255801,-0.215687,-0.023443,-0.9497596)(0.9821816,0.003167251,-0.1876046,0.01067693)"
-        '"One more - Haptics:V1(80.3, 37.7, -334.1)(80.1, 34.3, -334.6)(80.1, 34.9, -334.6)(80.5, 36.6, -335.1)(79.2, 36.6, -334.4)(81.5, 34.7, -336.4)(77.6, 34.7, -334.5)(82.0, 32.3, -336.4)(77.7, 32.3, -334.2)(81.1, 32.0, -335.5)(78.8, 32.0, -334.2)(81.0, 27.7, -333.6)(80.3, 27.8, -332.9)(81.3, 23.5, -335.2)(79.0, 23.6, -333.8)(0.2701674,0.239546,-0.06961434,0.9299361)(-0.7548343,-0.001274519,-0.6484137,0.09891184)(-0.2426835,0.04793017,0.959358,0.135793)(0.04194229,0.2654545,0.006020525,0.963192)(-0.9635401,-0.003260065,0.2675398,0.001444333)^^/^(81.4, 29.9, -324.1)(81.4, 29.7, -324.4)(83.0, 29.9, -322.5)(83.1, 29.7, -322.7)(80.5, 32.7, -321.3)(80.2, 28.9, -321.3)(79.3, 22.3, -322.2)(81.3, 22.4, -321.3)Moogle1"
-        '"Two - Haptics:V1(76.9, 37.6, -323.9)(77.0, 34.2, -323.2)(77.0, 34.9, -323.2)(76.4, 36.6, -322.9)(77.9, 36.5, -323.3)(75.2, 34.7, -321.8)(79.5, 34.7, -322.6)(74.9, 32.2, -321.8)(79.4, 32.3, -322.7)(75.9, 32.0, -322.5)(78.4, 31.9, -323.3)(76.1, 27.8, -324.6)(77.2, 27.8, -325.0)(75.7, 23.6, -323.1)(78.4, 23.6, -323.7)(-0.03748857,0.936684,-0.3316957,-0.1058107)(-0.7507744,0.0998488,0.6527701,-0.01611204)(0.9126387,0.1561787,0.3777094,-0.005902914)(0.005238595,0.9890235,-0.07425836,-0.1276343)(0.1449823,0.004352957,0.9894212,0.002602346)^^/^(66.6, 30.4, -332.5)(66.8, 29.7, -333.0)(67.6, 30.3, -329.0)(68.0, 29.7, -328.7)(65.5, 36.4, -330.2)(66.1, 32.0, -330.4)(65.9, 23.0, -331.8)(67.0, 23.0, -328.8)Snoozeto^/^(80.5, 31.6, -329.4)(80.6, 31.4, -328.8)(78.9, 31.1, -330.5)(78.5, 30.6, -330.3)(81.5, 33.4, -332.4)(81.2, 29.5, -332.0)(81.8, 22.4, -331.6)(80.4, 22.4, -332.0)Moogle1"
-
         Try 'Call this the Corb catcher, catches errors in the packets and just exits.
 
             If Readz <> "" Then 'Make sure its not a blank line
 
-                If Readz.Contains("Haptics:") Then
+                If Readz.Contains("Haptics:") Then 'If its part of our haptics stuff...
 
-                    If Readz.Contains("Debug") Then 'Debug Counter
+                    If Readz.Contains("Debug") Then 'Debug Counter, only really used in my test world, nothing to see here
                         debugcounter = debugcounter + 1 'debug counter increase
-                        NumericUpDown1.Value = debugcounter
                     Else
 
                         'Get local player bones
@@ -375,7 +379,7 @@ Public Class Form1
                         head.X = headpieces(0) / 10 'Head pieces to the vector3
                         head.Y = headpieces(1) / 10
                         head.Z = headpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Hips
                         Dim hipschunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just hips from string
@@ -383,7 +387,7 @@ Public Class Form1
                         hips.X = hipspieces(0) / 10 'Hips pieces to the vector3
                         hips.Y = hipspieces(1) / 10
                         hips.Z = hipspieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Chest
                         Dim Chestchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Chest from string
@@ -391,7 +395,7 @@ Public Class Form1
                         chest.X = Chestpieces(0) / 10 'Chest pieces to the vector3
                         chest.Y = Chestpieces(1) / 10
                         chest.Z = Chestpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Shoulder
                         Dim RShoulderchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Shoulder from string
@@ -399,7 +403,7 @@ Public Class Form1
                         RShoulder.X = RShoulderpieces(0) / 10 'Right Shoulder pieces to the vector3
                         RShoulder.Y = RShoulderpieces(1) / 10
                         RShoulder.Z = RShoulderpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Shoulder
                         Dim lShoulderchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Shoulder from string
@@ -407,7 +411,7 @@ Public Class Form1
                         LShoulder.X = lShoulderpieces(0) / 10 'Left Shoulder pieces to the vector3
                         LShoulder.Y = lShoulderpieces(1) / 10
                         LShoulder.Z = lShoulderpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Lower Arm (elbow)
                         Dim RLAchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Arm (elbow) from string
@@ -415,7 +419,7 @@ Public Class Form1
                         RLA.X = RLApieces(0) / 10 'Right Lower Arm (elbow) pieces to the vector3
                         RLA.Y = RLApieces(1) / 10
                         RLA.Z = RLApieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Lower Arm (elbow)
                         Dim LLAchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Lower Arm (elbow) from string
@@ -423,7 +427,7 @@ Public Class Form1
                         LLA.X = LLApieces(0) / 10 'Left Lower Arm (elbow) pieces to the vector3
                         LLA.Y = LLApieces(1) / 10
                         LLA.Z = LLApieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Hand
                         Dim RHandchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Hand from string
@@ -431,7 +435,7 @@ Public Class Form1
                         RHand.X = RHandpieces(0) / 10 'Right Hand pieces to the vector3
                         RHand.Y = RHandpieces(1) / 10
                         RHand.Z = RHandpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Hand
                         Dim LHandchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Hand from string
@@ -439,7 +443,7 @@ Public Class Form1
                         LHand.X = LHandpieces(0) / 10 'Left Hand pieces to the vector3
                         LHand.Y = LHandpieces(1) / 10
                         LHand.Z = LHandpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Upper Leg
                         Dim Rulchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Upper Leg from string
@@ -447,7 +451,7 @@ Public Class Form1
                         RUL.X = Rulpieces(0) / 10 'Right Upper Leg pieces to the vector3
                         RUL.Y = Rulpieces(1) / 10
                         RUL.Z = Rulpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Upper Leg
                         Dim lulchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Upper Leg from string
@@ -455,7 +459,7 @@ Public Class Form1
                         LUL.X = lulpieces(0) / 10 'Left Upper Leg pieces to the vector3
                         LUL.Y = lulpieces(1) / 10
                         LUL.Z = lulpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Lower Leg (knee)
                         Dim Rllchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Leg (knee) from string
@@ -463,7 +467,7 @@ Public Class Form1
                         RLL.X = Rllpieces(0) / 10 'Right Lower Leg (knee) pieces to the vector3
                         RLL.Y = Rllpieces(1) / 10
                         RLL.Z = Rllpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Lower Leg (knee)
                         Dim lllchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Lower Leg (knee) from string
@@ -471,7 +475,7 @@ Public Class Form1
                         LLL.X = lllpieces(0) / 10 'Left Lower Leg (knee) pieces to the vector3
                         LLL.Y = lllpieces(1) / 10
                         LLL.Z = lllpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Foot
                         Dim RFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Foot from string
@@ -479,7 +483,7 @@ Public Class Form1
                         RFoot.X = RFootpieces(0) / 10 'Right Foot pieces to the vector3
                         RFoot.Y = RFootpieces(1) / 10
                         RFoot.Z = RFootpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Foot
                         Dim lFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Foot from string
@@ -487,7 +491,7 @@ Public Class Form1
                         LFoot.X = lFootpieces(0) / 10 'Left Foot pieces to the vector3
                         LFoot.Y = lFootpieces(1) / 10
                         LFoot.Z = lFootpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Head Rotation
                         Dim HeadRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
@@ -496,7 +500,7 @@ Public Class Form1
                         headR.Y = HeadRpieces(1)
                         headR.Z = HeadRpieces(2)
                         headR.W = HeadRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Right Hand Rotation
                         Dim RHandRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Hand Rotation from string
@@ -505,7 +509,7 @@ Public Class Form1
                         RHandR.Y = RHandRpieces(1)
                         RHandR.Z = RHandRpieces(2)
                         RHandR.W = RHandRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Left Hand Rotation
                         Dim LHandRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Hand Rotation from string
@@ -514,7 +518,7 @@ Public Class Form1
                         LHandR.Y = LHandRpieces(1)
                         LHandR.Z = LHandRpieces(2)
                         LHandR.W = LHandRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Chest Rotation
                         Dim ChestRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
@@ -523,7 +527,7 @@ Public Class Form1
                         ChestR.Y = ChestRpieces(1)
                         ChestR.Z = ChestRpieces(2)
                         ChestR.W = ChestRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         'Hips Rotation
                         Dim HipsRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
@@ -532,11 +536,11 @@ Public Class Form1
                         HipsR.Y = HipsRpieces(1)
                         HipsR.Z = HipsRpieces(2)
                         HipsR.W = HipsRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                         Dim difference As Vector3 = hips 'Grab where the center should be
 
-                        OPRTDs.Clear()
+                        OPRTDs.Clear()  'Clear out other player's bones for this round
                         OPRIDs.Clear()
                         OPLTDs.Clear()
                         OPLIDs.Clear()
@@ -546,9 +550,9 @@ Public Class Form1
                         OPLFoots.Clear()
                         OtherPlayers.Clear()
 
-                        Dim otherplayercount As Integer = (Readz.Length - Readz.Replace("^/^", String.Empty).Length) / 3
+                        Dim otherplayercount As Integer = (Readz.Length - Readz.Replace("^/^", String.Empty).Length) / 3 'how man other players are close enough to me?
 
-                        For i = 0 To otherplayercount - 1
+                        For i = 0 To otherplayercount - 1 'for each of them...
 
                             'Other Player's Right Thumb Distal
                             Dim OPRTDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Thumb Distal from string
@@ -556,7 +560,7 @@ Public Class Form1
                             OPRTD.X = OPRTDpieces(0) / 10 'Right Thumb Distal pieces to the vector3
                             OPRTD.Y = OPRTDpieces(1) / 10
                             OPRTD.Z = OPRTDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other Player's Right Index Distal
                             Dim OPRiDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Index Distal from string
@@ -564,7 +568,7 @@ Public Class Form1
                             OPRID.X = OPRiDpieces(0) / 10 'Right Index Distal pieces to the vector3
                             OPRID.Y = OPRiDpieces(1) / 10
                             OPRID.Z = OPRiDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other Player's Left Thumb Distal
                             Dim OPlTDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Thumb Distal from string
@@ -572,7 +576,7 @@ Public Class Form1
                             OPLTD.X = OPlTDpieces(0) / 10 'Left Thumb Distal pieces to the vector3
                             OPLTD.Y = OPlTDpieces(1) / 10
                             OPLTD.Z = OPlTDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other Player's Left Index Distal
                             Dim OPliDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Index Distal from string
@@ -580,7 +584,7 @@ Public Class Form1
                             OPLID.X = OPliDpieces(0) / 10 'Left Index Distal pieces to the vector3
                             OPLID.Y = OPliDpieces(1) / 10
                             OPLID.Z = OPliDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other player's Head
                             Dim OPheadchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head from string
@@ -588,7 +592,7 @@ Public Class Form1
                             OPHead.X = OPheadpieces(0) / 10 'Head pieces to the vector3
                             OPHead.Y = OPheadpieces(1) / 10
                             OPHead.Z = OPheadpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other player's Hips
                             Dim OPHipschunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Hips from string
@@ -596,7 +600,7 @@ Public Class Form1
                             OPHips.X = OPHipspieces(0) / 10 'Hips pieces to the vector3
                             OPHips.Y = OPHipspieces(1) / 10
                             OPHips.Z = OPHipspieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other player's Right Foot
                             Dim OPRFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Foot from string
@@ -604,7 +608,7 @@ Public Class Form1
                             OPRFoot.X = OPRFootpieces(0) / 10 'Right Foot pieces to the vector3
                             OPRFoot.Y = OPRFootpieces(1) / 10
                             OPRFoot.Z = OPRFootpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Other player's Left Foot
                             Dim OPlFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Foot from string
@@ -612,17 +616,17 @@ Public Class Form1
                             OPLFoot.X = OPlFootpieces(0) / 10 'Left Foot pieces to the vector3
                             OPLFoot.Y = OPlFootpieces(1) / 10
                             OPLFoot.Z = OPlFootpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1)
+                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
 
                             'Get other player Names
                             If i + 1 = otherplayercount Then ' on the last name?
                                 OtherPlayers.Add(Readz)
                             Else 'No there's more
-                                OtherPlayers.Add(Readz.Substring(0, Readz.IndexOf("^/^")))
+                                OtherPlayers.Add(Readz.Substring(0, Readz.IndexOf("^/^"))) 'Like this is so much string manipulation and I can't handle it man
                                 Readz = Readz.Substring(Readz.IndexOf("^/^")) 'Take the name off incase they have "(" or ")" in their name
                             End If
 
-                            'Center other player
+                            'Center other player to myself
                             OPRTD = OPRTD - difference
                             OPRID = OPRID - difference
                             OPLTD = OPLTD - difference
@@ -632,7 +636,7 @@ Public Class Form1
                             OPRFoot = OPRFoot - difference
                             OPLFoot = OPLFoot - difference
 
-                            OPRTDs.Add(OPRTD)
+                            OPRTDs.Add(OPRTD)   'add each other bone of the other players to a list
                             OPRIDs.Add(OPRID)
                             OPLTDs.Add(OPLTD)
                             OPLIDs.Add(OPLID)
@@ -782,7 +786,7 @@ Public Class Form1
             Next
         Next
 
-        'Head direction indicator
+        'Head direction indicator, on the 3D display
         HeadVector = New Vector3(0, 0, V3Distance(head, chest) / 2)
         HeadVector = Vector3.TransformVector(HeadVector, HeadRM)
         HeadVector = HeadVector + head
@@ -895,34 +899,34 @@ Public Class Form1
                 End If
         End Select
 
-        If outputtest = True Then
-            'outputtestindex = outputtestindex + 1
-            If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count Then
+        If outputtest = True Then   'If output test is on
+            outputtestindex = outputtestindex + 1   'Cycle through all the inputs
+            If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count Then    'Reset it when it gets to the max of the device
                 outputtestindex = 1
             End If
         Else
-            outputtestindex = 0
+            outputtestindex = 0 'If not output testing, set this to zero
         End If
 
 
         'Send to Haptic Devices
-        If NodeDeviceNames.Count <> 0 Then
-            For i = 0 To NodeDeviceNames.Count - 1
-                Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)
+        If NodeDeviceNames.Count <> 0 Then 'We got devices?
+            For i = 0 To NodeDeviceNames.Count - 1 'For each device we've got defined
+                Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)    'End point stuff for the UDP multicast
                 Dim stringz As String = NodeDeviceNames(i) & "^P&" 'Carret is for limiting Name from type of mode and ampersand is for transistion to outputs
-                Dim Prefix() As Byte = System.Text.Encoding.ASCII.GetBytes(stringz)
-                Dim sendbytes(Prefix.Length + 19) As Byte
+                Dim Prefix() As Byte = System.Text.Encoding.ASCII.GetBytes(stringz) 'Convert from chars to bytes (programmers should realize this is silly) Wait bytes are characters? Always has been... gunshot
+                Dim sendbytes(Prefix.Length + 19) As Byte   'Define byte length
                 For i2 = 0 To Prefix.Length - 1
-                    sendbytes(i2) = Prefix(i2)
+                    sendbytes(i2) = Prefix(i2) 'Shift in the characters
                 Next
                 For i2 = 0 To NodeOutputs(i).Count - 1
-                    If NodeOutputs(i)(i2) = True Then
-                        sendbytes(Prefix.Length + i2) = intensity
+                    If NodeOutputs(i)(i2) = True Then 'We outputing this output outputedly?
+                        sendbytes(Prefix.Length + i2) = intensity 'Shift in output data for the device to use
                     Else
-                        sendbytes(Prefix.Length + i2) = 0
+                        sendbytes(Prefix.Length + i2) = 0   'Else turn it off
                     End If
                 Next
-                Multicaster.Send(sendbytes, sendbytes.Length, ep)
+                Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
             Next
         End If
 
@@ -945,7 +949,7 @@ Public Class Form1
         GL.ClearColor(Color.Black) 'set the back color
     End Sub
 
-    'GL-Control main routine
+    'GL-Control main routine, this like, draws the 3D part
     Private Sub GlControl1_Paint(sender As Object, e As PaintEventArgs) Handles GlControl1.Paint
         GL.Clear(ClearBufferMask.ColorBufferBit)    'Clear buffers
         GL.Clear(ClearBufferMask.DepthBufferBit)
@@ -965,12 +969,12 @@ Public Class Form1
 
         'Y is up, Z is twards you, X is left and right
 
-        GL.Rotate(-rotateX / 4, 0, 0, 1)
+        GL.Rotate(-rotateX / 4, 0, 0, 1)    'Mouse rotation of the 3D
         GL.Rotate(rotateY / 4, 0, 1, 0)
 
-        GL.Rotate(slowrotateY, 0, 1, 0)
+        GL.Rotate(slowrotateY, 0, 1, 0) 'Awwww yiss that slow rotate
 
-        'Draw World Orientation
+        'Draw World Orientation, the 3 color 3 line thing at the bottom
         GL.LineWidth(3)
         GL.Begin(BeginMode.Lines)
         GL.Color3(Color.Red)
@@ -1096,7 +1100,7 @@ Public Class Form1
 
         'Draw Nodes
         For i2 = 0 To NodeDeviceNames.Count - 1
-            For i = 0 To NodeFinalPos(i2).Count - 1
+            For i = 0 To NodeFinalPos(i2).Count - 1 'This section shifts the nodes to be based off the root bone that they've been defined for
                 If DGVDevice.SelectedCells(0).RowIndex = i2 And DGVNodes.SelectedCells(0).RowIndex = i Then
                     GL.LineWidth(10)
                     Dim directionVectorX As New Vector3(NodeActivationDistance(i2)(i) * 2, 0, 0)
@@ -1157,7 +1161,7 @@ Public Class Form1
                             directionVectorZ = Vector3.TransformVector(directionVectorZ, LLLM)
                     End Select
 
-                    Select Case DGVNodes.SelectedCells(0).ColumnIndex
+                    Select Case DGVNodes.SelectedCells(0).ColumnIndex   'This is the small colored line that appears on the node when a direction is selected
                         Case 2
                             GL.Color3(Color.Red)
                             GL.Begin(BeginMode.Lines)
@@ -1180,7 +1184,7 @@ Public Class Form1
                 End If
                 GL.LineWidth(1)
 
-                If NodeOutputs(i2)(i) = True Then
+                If NodeOutputs(i2)(i) = True Then   'If the node is on, color it light blue vs orange
                     GL.Color3(Color.Green)
                 ElseIf DGVDevice.SelectedCells(0).RowIndex = i2 And DGVNodes.SelectedCells(0).RowIndex = i Then
                     GL.Color3(Color.LightBlue)
@@ -1188,7 +1192,7 @@ Public Class Form1
                     GL.Color3(Color.Orange)
                 End If
 
-                For i3 = 0 To 15
+                For i3 = 0 To 15 'This following mess creates the lined spheres for the nodes
                     GL.Begin(BeginMode.LineLoop)
                     Dim tempangi As Single = (i3 / 15) * 360 * (Math.PI / 180)
                     Dim yi As Single = Math.Sin(tempangi) * (NodeActivationDistance(i2)(i))
@@ -1210,8 +1214,9 @@ Public Class Form1
 
 
         'Add Avatar
+        'I like apologize for this, its to get a rough guess at where your avatar body looks like compared to the bones
         If AvatarLoaded = True Then 'Make sure there's an avatar first
-            GL.Enable(EnableCap.Light0)
+            GL.Enable(EnableCap.Light0) 'This follwing area makes it mostly transparent
             GL.Enable(EnableCap.Lighting)
             GL.ShadeModel(ShadingModel.Smooth)
             Dim params1() As Single = {0.2F, 0.2F, 0.2F, 1}
@@ -1224,14 +1229,14 @@ Public Class Form1
 
             GL.Material(MaterialFace.FrontAndBack, MaterialParameter.AmbientAndDiffuse, Color.LightBlue)
 
-            GL.PushMatrix()
+            GL.PushMatrix() 'This section rotates it very loosely to the correct spot
             GL.Translate(0, lower, 0)
             GL.Rotate(AvatarRotation.X, 1, 0, 0)
             GL.Rotate(AvatarRotation.Y, 0, 1, 0)
             GL.Rotate(AvatarRotation.Z, 0, 0, 1)
             GL.Begin(BeginMode.Triangles)
 
-            For i = 0 To Avatarpoints.Count - 1 Step 3
+            For i = 0 To Avatarpoints.Count - 1 Step 3  'This part draws the mesh faces of the avatar
                 GL.Normal3(Avatarnormals(i / 3))
                 GL.Vertex3(Avatarpoints(i))
                 GL.Vertex3(Avatarpoints(i + 1))
@@ -1250,51 +1255,55 @@ Public Class Form1
 
     End Sub
 
+    '3D control when you mouse down on the 3D
     Private Sub GlControl1_MouseDown(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseDown
-        mousecontrol = True
-        If e.Button = MouseButtons.Right Then
+        mousecontrol = True 'Set we have moused down
+        If e.Button = MouseButtons.Right Then   'Right click for vertical positioning
             mousecontroltype = 2
             mousestartposition = New Point(MousePosition.X - positionX, MousePosition.Y - positionY)
-        ElseIf e.Button = MouseButtons.Left Then
+        ElseIf e.Button = MouseButtons.Left Then 'Left click for rotation
             mousestartrotate = New Point(MousePosition.X - rotateY, MousePosition.Y - rotateX)
             mousecontroltype = 1
         End If
-        slowrotate = False
+        slowrotate = False 'Turn off the slow rotate
     End Sub
 
+    'Mouse movement on 3D
     Private Sub GlControl1_MouseMove(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseMove
-        If mousecontrol = True Then
+        If mousecontrol = True Then 'Only if we are actively moving the 3D, or else it lags the program
 
-            If mousecontroltype = 1 Then
+            If mousecontroltype = 1 Then 'For rotation
                 rotateY = (MousePosition.X - mousestartrotate.X)
                 rotateX = (MousePosition.Y - mousestartrotate.Y)
-                GlControl1.Invalidate()
-            ElseIf mousecontroltype = 2 Then
-                'positionX = (MousePosition.X - mousestartposition.X)
+                GlControl1.Invalidate() 'Reset the 3D
+            ElseIf mousecontroltype = 2 Then 'For vertical position
                 ypos = (MousePosition.Y - mousestartposition.Y) / 400
-                GlControl1.Invalidate()
+                GlControl1.Invalidate() 'Reset the 3D
             End If
 
         End If
 
     End Sub
 
+    'Mouse has ended 3D control
     Private Sub GlControl1_MouseUp(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseUp
-        mousecontrol = False
-        mousecontroltype = 0
-        GlControl1.Invalidate()
+        mousecontrol = False 'No more mousing
+        mousecontroltype = 0 'No more controling
+        GlControl1.Invalidate() 'Update the 3D
     End Sub
 
+    'Mouse event for 3D zoom
     Private Sub GlControl1_MouseWheel(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseWheel
-        zpos = zpos + (e.Delta / 1000)
-        If zpos < 0 Then
+        zpos = zpos + (e.Delta / 1000) 'e.delta being the scoll amount, which is like... 3 by default I think
+        If zpos < 0 Then 'Put a minimum on it
             zpos = 0
         End If
 
-        GlControl1.Invalidate()
+        GlControl1.Invalidate() 'Reset the 3D
     End Sub
 
-    Public Sub fileimportSTL()
+    'For reading in an avatar's STL
+    Public Sub fileimportSTL() 'First you should know, this requires the normals as well
         Dim pointsstring() As Byte  'Bytes of STL file
 
         GC.Collect()    'Do this cause file reading is odd
@@ -1355,9 +1364,9 @@ Public Class Form1
     'Delete Device
     Private Sub RemoveDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RemoveDeviceToolStripMenuItem.Click
         If DGVDevice.SelectedCells.Count > 0 Then
-            If DGVDevice.SelectedCells(0).RowIndex <> -1 Then
-                If MessageBox.Show("Delete " & NodeDeviceNames(DGVDevice.SelectedCells(0).RowIndex), "Really?", MessageBoxButtons.YesNo) = DialogResult.Yes Then
-                    NodeDeviceNames.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
+            If DGVDevice.SelectedCells(0).RowIndex <> -1 Then 'For the specific listed device
+                If MessageBox.Show("Delete " & NodeDeviceNames(DGVDevice.SelectedCells(0).RowIndex), "Really?", MessageBoxButtons.YesNo) = DialogResult.Yes Then 'Confirm deletion
+                    NodeDeviceNames.RemoveAt(DGVDevice.SelectedCells(0).RowIndex) 'Remove device from lists
                     NodeDeviceConnection.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeOutputs.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeBoneOffset.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
@@ -1365,7 +1374,7 @@ Public Class Form1
                     NodeRootBone.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeActivationDistance.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     DGVDevice.Rows.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
-                    DGVNodeUpdate()
+                    DGVNodeUpdate() 'update nodes
                 End If
             End If
         End If
@@ -1375,7 +1384,7 @@ Public Class Form1
     Private Sub EditDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles EditDeviceToolStripMenuItem.Click
         If DGVDevice.SelectedCells.Count > 0 Then
             If DGVDevice.SelectedCells(0).RowIndex <> -1 Then
-                DeviceMethod = 2
+                DeviceMethod = 2 'Editing device
                 DeviceIndex = DGVDevice.SelectedCells(0).RowIndex
                 DeviceEditor.ShowDialog()
             End If
@@ -1384,7 +1393,7 @@ Public Class Form1
 
     'Add Device
     Private Sub AddDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AddDeviceToolStripMenuItem.Click
-        DeviceMethod = 1
+        DeviceMethod = 1 'Adding device
         DeviceEditor.ShowDialog()
     End Sub
 
@@ -1398,7 +1407,7 @@ Public Class Form1
         If NodeDeviceNames.Count = 0 Then   'If there's no devices, don't update
             Return
         End If
-        For i = 0 To NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count - 1
+        For i = 0 To NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count - 1 'After nodes cleared, reload
             DGVNodes.Rows.Add()
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(0).Value = i
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(1).Value = RootBones(NodeRootBone(DGVDevice.SelectedCells(0).RowIndex)(i))
@@ -1407,21 +1416,21 @@ Public Class Form1
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(4).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).Z
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(5).Value = NodeActivationDistance(DGVDevice.SelectedCells(0).RowIndex)(i)
         Next
-        DGVupdating = False
+        DGVupdating = False 'This prevents the cell value changed event from happening cause its all original data
     End Sub
 
     'Save bone
     Private Sub DGVNodes_CellValueChanged(sender As Object, e As DataGridViewCellEventArgs) Handles DGVNodes.CellValueChanged
-        If DGVupdating = False Then
+        If DGVupdating = False Then 'Check we're not just getting the original data
             If e.RowIndex <> -1 Then
-                NodeRootBone(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = RootBones.IndexOf(DGVNodes.Rows(e.RowIndex).Cells(1).Value)
+                NodeRootBone(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = RootBones.IndexOf(DGVNodes.Rows(e.RowIndex).Cells(1).Value) 'If root bone changed, save that
                 Try
-                    NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = New Vector3(DGVNodes.Rows(e.RowIndex).Cells(2).Value, DGVNodes.Rows(e.RowIndex).Cells(3).Value, DGVNodes.Rows(e.RowIndex).Cells(4).Value)
+                    NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = New Vector3(DGVNodes.Rows(e.RowIndex).Cells(2).Value, DGVNodes.Rows(e.RowIndex).Cells(3).Value, DGVNodes.Rows(e.RowIndex).Cells(4).Value) 'If offset changed, save that
                     DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.White
                     DGVNodes.Rows(e.RowIndex).Cells(3).Style.BackColor = Color.White
                     DGVNodes.Rows(e.RowIndex).Cells(4).Style.BackColor = Color.White
                 Catch ex As Exception
-                    DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.Red
+                    DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.Red 'If the math conversion failed, set it to red so user can fix
                     DGVNodes.Rows(e.RowIndex).Cells(3).Style.BackColor = Color.Red
                     DGVNodes.Rows(e.RowIndex).Cells(4).Style.BackColor = Color.Red
                 End Try
@@ -1431,12 +1440,13 @@ Public Class Form1
                 Catch ex As Exception
                     DGVNodes.Rows(e.RowIndex).Cells(5).Style.BackColor = Color.Red
                 End Try
-                Settingschanged = True
+                Settingschanged = True 'Something changed, prompt at exit for save
             End If
         End If
     End Sub
 
-    Public Sub DGVDevicesUpdate()
+    'Devices update
+    Public Sub DGVDevicesUpdate() 'Clears out the devices and reloads them
         DGVDevice.Rows.Clear()
         For i = 0 To NodeDeviceNames.Count - 1
             DGVDevice.Rows.Add()
@@ -1468,6 +1478,8 @@ Public Class Form1
     Private Sub SFDSettings_FileOk(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles SFDSettings.FileOk
         SettingsFileSave() 'Call File Saver
     End Sub
+
+    'Load settings file
     Private Sub SettingsFileLoad()
         'Empty out everything
         NodeDeviceNames.Clear()
@@ -1534,6 +1546,8 @@ Public Class Form1
         Settingschanged = False
 
     End Sub
+
+    'Settings file save
     Private Sub SettingsFileSave()
         Dim WriteList As New List(Of String)
 
@@ -1565,6 +1579,7 @@ Public Class Form1
         Settingschanged = False
     End Sub
 
+    'Close program
     Private Sub CloseToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CloseToolStripMenuItem.Click
         If MessageBox.Show("Save Settings?", "Save", MessageBoxButtons.YesNo) = DialogResult.Yes Then   'Prompt for file save
             SFDSettings.ShowDialog()    'If yes
@@ -1572,30 +1587,23 @@ Public Class Form1
         Me.Close()  'Exit Program
     End Sub
 
+    'Slow rotate enable
     Private Sub SpinToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SpinToolStripMenuItem.Click
         slowrotate = True
     End Sub
 
-    Private Sub KeepAtFrontToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles KeepAtFrontToolStripMenuItem.Click
-
-    End Sub
-
+    'Setup device on wifi show dialog
     Private Sub SetWifiOnDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SetWifiOnDeviceToolStripMenuItem.Click
         DeviceWifi.Show()
     End Sub
 
-    Private Sub Button3_Click(sender As Object, e As EventArgs)
-        outputtest = outputtest + 1
-        If outputtest = 17 Then
-            outputtest = 0
-        End If
-    End Sub
-
+    'Intensity scroll
     Private Sub TrackBar1_Scroll(sender As Object, e As EventArgs) Handles TrackBar1.Scroll
         intensity = TrackBar1.Value
         Settingschanged = True
     End Sub
 
+    'Test outputs toggle
     Private Sub TestDeviceOutputsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles TestDeviceOutputsToolStripMenuItem.Click
         If outputtest = True Then
             outputtest = False
@@ -1607,6 +1615,7 @@ Public Class Form1
         End If
     End Sub
 
+    'Form closing, request save if something changed
     Private Sub Form1_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Settingschanged = True Then
             If MessageBox.Show("Save Settings?", "Save", MessageBoxButtons.YesNo) = DialogResult.Yes Then   'Prompt for file save

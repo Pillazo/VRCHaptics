@@ -25,8 +25,6 @@ Partial Class Form1
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
         Me.MainTimer = New System.Windows.Forms.Timer(Me.components)
-        Me.NumericUpDown1 = New System.Windows.Forms.NumericUpDown()
-        Me.Label14 = New System.Windows.Forms.Label()
         Me.GlControl1 = New OpenTK.GLControl()
         Me.LblLogStatus = New System.Windows.Forms.Label()
         Me.RetryTimer = New System.Windows.Forms.Timer(Me.components)
@@ -72,7 +70,6 @@ Partial Class Form1
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
         Me.Label1 = New System.Windows.Forms.Label()
-        CType(Me.NumericUpDown1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -84,23 +81,6 @@ Partial Class Form1
         'MainTimer
         '
         Me.MainTimer.Interval = 10
-        '
-        'NumericUpDown1
-        '
-        Me.NumericUpDown1.Location = New System.Drawing.Point(54, 64)
-        Me.NumericUpDown1.Name = "NumericUpDown1"
-        Me.NumericUpDown1.ReadOnly = True
-        Me.NumericUpDown1.Size = New System.Drawing.Size(55, 20)
-        Me.NumericUpDown1.TabIndex = 3
-        '
-        'Label14
-        '
-        Me.Label14.AutoSize = True
-        Me.Label14.Location = New System.Drawing.Point(9, 66)
-        Me.Label14.Name = "Label14"
-        Me.Label14.Size = New System.Drawing.Size(39, 13)
-        Me.Label14.TabIndex = 43
-        Me.Label14.Text = "Debug"
         '
         'GlControl1
         '
@@ -267,31 +247,31 @@ Partial Class Form1
         'AddDeviceToolStripMenuItem
         '
         Me.AddDeviceToolStripMenuItem.Name = "AddDeviceToolStripMenuItem"
-        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.AddDeviceToolStripMenuItem.Text = "Add Device"
         '
         'EditDeviceToolStripMenuItem
         '
         Me.EditDeviceToolStripMenuItem.Name = "EditDeviceToolStripMenuItem"
-        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.EditDeviceToolStripMenuItem.Text = "Edit Device"
         '
         'RemoveDeviceToolStripMenuItem
         '
         Me.RemoveDeviceToolStripMenuItem.Name = "RemoveDeviceToolStripMenuItem"
-        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.RemoveDeviceToolStripMenuItem.Text = "Remove Device"
         '
         'SetWifiOnDeviceToolStripMenuItem
         '
         Me.SetWifiOnDeviceToolStripMenuItem.Name = "SetWifiOnDeviceToolStripMenuItem"
-        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SetWifiOnDeviceToolStripMenuItem.Text = "Set Wifi on Device"
         '
         'TestDeviceOutputsToolStripMenuItem
         '
         Me.TestDeviceOutputsToolStripMenuItem.Name = "TestDeviceOutputsToolStripMenuItem"
-        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
+        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.TestDeviceOutputsToolStripMenuItem.Text = "Test Device Outputs"
         '
         'AvatarToolStripMenuItem
@@ -433,8 +413,6 @@ Partial Class Form1
         Me.Controls.Add(Me.GroupBox1)
         Me.Controls.Add(Me.LblLogStatus)
         Me.Controls.Add(Me.GlControl1)
-        Me.Controls.Add(Me.Label14)
-        Me.Controls.Add(Me.NumericUpDown1)
         Me.Controls.Add(Me.MenuStrip1)
         Me.Controls.Add(Me.TrackBar1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
@@ -442,7 +420,6 @@ Partial Class Form1
         Me.MainMenuStrip = Me.MenuStrip1
         Me.Name = "Form1"
         Me.Text = "VRChat Haptics"
-        CType(Me.NumericUpDown1, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).EndInit()
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox2.ResumeLayout(False)
@@ -455,8 +432,6 @@ Partial Class Form1
 
     End Sub
     Friend WithEvents MainTimer As Timer
-    Friend WithEvents NumericUpDown1 As NumericUpDown
-    Friend WithEvents Label14 As Label
     Friend WithEvents GlControl1 As OpenTK.GLControl
     Friend WithEvents LblLogStatus As Label
     Friend WithEvents RetryTimer As Timer
