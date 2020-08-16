@@ -75,6 +75,7 @@ Public Class Form1
     Dim Multicaster As New System.Net.Sockets.UdpClient(MulticastPort) 'Call out the UDP for use
     Dim outputtestindex As Integer = 0  'For testing the outputs of the controller
     Public outputtest As Boolean = False    'Output test is on / off
+    Dim outputtestdelay As Integer = 0  'Delay for each output during test
     Dim intensity As Integer = 0    'Intensity slider
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
@@ -900,7 +901,11 @@ Public Class Form1
         End Select
 
         If outputtest = True Then   'If output test is on
-            outputtestindex = outputtestindex + 1   'Cycle through all the inputs
+            outputtestdelay = outputtestdelay + 1    'Add time for each output
+            If outputtestdelay = 10 Then
+                outputtestindex = outputtestindex + 1   'Cycle through all the inputs
+                outputtestdelay = 0
+            End If
             If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count Then    'Reset it when it gets to the max of the device
                 outputtestindex = 1
             End If
