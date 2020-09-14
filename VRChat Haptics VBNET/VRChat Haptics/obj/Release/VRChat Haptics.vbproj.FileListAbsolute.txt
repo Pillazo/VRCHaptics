@@ -1,0 +1,19 @@
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\VRChat Haptics.exe.config
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\VRChat Haptics.exe
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\VRChat Haptics.pdb
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\VRChat Haptics.xml
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\OpenTK.dll
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\bin\Release\OpenTK.GLControl.dll
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.vbprojAssemblyReference.cache
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.AvatarList.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.DeviceWifi.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.Form1.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.DeviceEditor.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.Resources.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChatHaptics.WhiteList.resources
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.vbproj.GenerateResource.cache
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.vbproj.CoreCompileInputs.cache
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.vbproj.CopyComplete
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.exe
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.xml
+C:\Users\Jenn\Documents\VRCHaptics\VRCHaptics\VRChat Haptics VBNET\VRChat Haptics\obj\Release\VRChat Haptics.pdb
