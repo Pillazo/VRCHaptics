@@ -70,6 +70,8 @@ Partial Class Form1
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
         Me.Label1 = New System.Windows.Forms.Label()
+        Me.TextBox1 = New System.Windows.Forms.TextBox()
+        Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -247,31 +249,31 @@ Partial Class Form1
         'AddDeviceToolStripMenuItem
         '
         Me.AddDeviceToolStripMenuItem.Name = "AddDeviceToolStripMenuItem"
-        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.AddDeviceToolStripMenuItem.Text = "Add Device"
         '
         'EditDeviceToolStripMenuItem
         '
         Me.EditDeviceToolStripMenuItem.Name = "EditDeviceToolStripMenuItem"
-        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.EditDeviceToolStripMenuItem.Text = "Edit Device"
         '
         'RemoveDeviceToolStripMenuItem
         '
         Me.RemoveDeviceToolStripMenuItem.Name = "RemoveDeviceToolStripMenuItem"
-        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.RemoveDeviceToolStripMenuItem.Text = "Remove Device"
         '
         'SetWifiOnDeviceToolStripMenuItem
         '
         Me.SetWifiOnDeviceToolStripMenuItem.Name = "SetWifiOnDeviceToolStripMenuItem"
-        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.SetWifiOnDeviceToolStripMenuItem.Text = "Set Wifi on Device"
         '
         'TestDeviceOutputsToolStripMenuItem
         '
         Me.TestDeviceOutputsToolStripMenuItem.Name = "TestDeviceOutputsToolStripMenuItem"
-        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(178, 22)
         Me.TestDeviceOutputsToolStripMenuItem.Text = "Test Device Outputs"
         '
         'AvatarToolStripMenuItem
@@ -401,11 +403,28 @@ Partial Class Form1
         Me.Label1.TabIndex = 63
         Me.Label1.Text = "Intensity"
         '
+        'TextBox1
+        '
+        Me.TextBox1.Location = New System.Drawing.Point(155, 27)
+        Me.TextBox1.Name = "TextBox1"
+        Me.TextBox1.Size = New System.Drawing.Size(151, 20)
+        Me.TextBox1.TabIndex = 64
+        '
+        'RichTextBox1
+        '
+        Me.RichTextBox1.Location = New System.Drawing.Point(309, 18)
+        Me.RichTextBox1.Name = "RichTextBox1"
+        Me.RichTextBox1.Size = New System.Drawing.Size(185, 175)
+        Me.RichTextBox1.TabIndex = 65
+        Me.RichTextBox1.Text = ""
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(755, 529)
+        Me.Controls.Add(Me.RichTextBox1)
+        Me.Controls.Add(Me.TextBox1)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
@@ -477,4 +496,6 @@ Partial Class Form1
     Friend WithEvents Z As DataGridViewTextBoxColumn
     Friend WithEvents Activation As DataGridViewTextBoxColumn
     Friend WithEvents TestDeviceOutputsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents TextBox1 As TextBox
+    Friend WithEvents RichTextBox1 As RichTextBox
 End Class

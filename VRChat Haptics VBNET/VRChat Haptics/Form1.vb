@@ -79,6 +79,7 @@ Public Class Form1
     Dim intensity As Integer = 0    'Intensity slider
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
+    Dim dc1, dc2, dc3, dc4, dc5 As Integer
 
 #Region "Debug Packet"
     'Packet for 1 player looks like "Haptics:V1(Bone data)(rotation data)"
@@ -342,7 +343,7 @@ Public Class Form1
 
     'Main Timer
     Private Sub MainTimer_Tick(sender As Object, e As EventArgs) Handles MainTimer.Tick 'fast tick, like 10ms
-
+        TextBox1.Text = dc1 & "," & dc2 & "," & dc3 & "," & dc4 & "," & dc5
         For i = 0 To NodeDeviceNames.Count + 1 'For each controller we have, hit the UDP that many times... plus 1, so we get all names out there
             udprcv()    'Call UDP recieve
         Next
@@ -361,13 +362,16 @@ Public Class Form1
 
         If VRCopen = True Then
             Readz = reader.ReadLine() 'get line from file stream
+            dc1 = dc1 + 1
         End If
 
         Try 'Call this the Corb catcher, catches errors in the packets and just exits.
 
             If Readz <> "" Then 'Make sure its not a blank line
+                dc2 = dc2 + 1
 
                 If Readz.Contains("Haptics:") Then 'If its part of our haptics stuff...
+                    dc3 = dc3 + 1
 
                     If Readz.Contains("Debug") Then 'Debug Counter, only really used in my test world, nothing to see here
                         debugcounter = debugcounter + 1 'debug counter increase
@@ -672,6 +676,8 @@ Public Class Form1
             End If
 
         Catch ex As Exception
+            dc4 = dc4 + 1
+            RichTextBox1.Text = ex.ToString
         End Try
 
         'MATH WHAAAAAAAAAAAAT
@@ -902,11 +908,11 @@ Public Class Form1
 
         If outputtest = True Then   'If output test is on
             outputtestdelay = outputtestdelay + 1    'Add time for each output
-            If outputtestdelay = 10 Then
+            If outputtestdelay = 50 Then
                 outputtestindex = outputtestindex + 1   'Cycle through all the inputs
                 outputtestdelay = 0
             End If
-            If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count Then    'Reset it when it gets to the max of the device
+            If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count + 1 Then    'Reset it when it gets to the max of the device
                 outputtestindex = 1
             End If
         Else
@@ -940,6 +946,7 @@ Public Class Form1
             GlControl1.Invalidate() 'Call the 3D to update
         End If
         GC.Collect() 'House Keeping
+        dc5 = dc5 + 1
     End Sub
 
     '3D Distance math
