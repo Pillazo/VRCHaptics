@@ -677,7 +677,7 @@ Public Class Form1
 
         Catch ex As Exception
             dc4 = dc4 + 1
-            RichTextBox1.Text = ex.ToString
+            TextBox2.Text = ex.ToString
         End Try
 
         'MATH WHAAAAAAAAAAAAT

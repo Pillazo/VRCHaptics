@@ -71,7 +71,7 @@ Partial Class Form1
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.TextBox1 = New System.Windows.Forms.TextBox()
-        Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
+        Me.TextBox2 = New System.Windows.Forms.TextBox()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -410,20 +410,20 @@ Partial Class Form1
         Me.TextBox1.Size = New System.Drawing.Size(151, 20)
         Me.TextBox1.TabIndex = 64
         '
-        'RichTextBox1
+        'TextBox2
         '
-        Me.RichTextBox1.Location = New System.Drawing.Point(309, 18)
-        Me.RichTextBox1.Name = "RichTextBox1"
-        Me.RichTextBox1.Size = New System.Drawing.Size(185, 175)
-        Me.RichTextBox1.TabIndex = 65
-        Me.RichTextBox1.Text = ""
+        Me.TextBox2.Location = New System.Drawing.Point(330, 27)
+        Me.TextBox2.Multiline = True
+        Me.TextBox2.Name = "TextBox2"
+        Me.TextBox2.Size = New System.Drawing.Size(151, 136)
+        Me.TextBox2.TabIndex = 65
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(755, 529)
-        Me.Controls.Add(Me.RichTextBox1)
+        Me.Controls.Add(Me.TextBox2)
         Me.Controls.Add(Me.TextBox1)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Button2)
@@ -497,5 +497,5 @@ Partial Class Form1
     Friend WithEvents Activation As DataGridViewTextBoxColumn
     Friend WithEvents TestDeviceOutputsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents TextBox1 As TextBox
-    Friend WithEvents RichTextBox1 As RichTextBox
+    Friend WithEvents TextBox2 As TextBox
 End Class
