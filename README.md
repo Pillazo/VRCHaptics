@@ -14,4 +14,4 @@ VB.Net program and use: https://youtu.be/C1V2dHkt9lk
 
 Adding the Udon to your world: https://youtu.be/wW_y7pmaBFk
 
-Find my project's discord at https://discord.gg/5Bpgwc
+Find my project's discord at https://discord.gg/QjyNznq
