@@ -70,8 +70,6 @@ Partial Class Form1
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.TextBox1 = New System.Windows.Forms.TextBox()
-        Me.TextBox2 = New System.Windows.Forms.TextBox()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -224,19 +222,19 @@ Partial Class Form1
         'LoadDeviceNodeDescriptionToolStripMenuItem
         '
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Name = "LoadDeviceNodeDescriptionToolStripMenuItem"
-        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Text = "Load Settings"
         '
         'SaveDeviceNodeDescriptionToolStripMenuItem
         '
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Name = "SaveDeviceNodeDescriptionToolStripMenuItem"
-        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Text = "Save Settings"
         '
         'CloseToolStripMenuItem
         '
         Me.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
-        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.CloseToolStripMenuItem.Text = "Close"
         '
         'DeviceToolStripMenuItem
@@ -403,28 +401,11 @@ Partial Class Form1
         Me.Label1.TabIndex = 63
         Me.Label1.Text = "Intensity"
         '
-        'TextBox1
-        '
-        Me.TextBox1.Location = New System.Drawing.Point(155, 27)
-        Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(151, 20)
-        Me.TextBox1.TabIndex = 64
-        '
-        'TextBox2
-        '
-        Me.TextBox2.Location = New System.Drawing.Point(330, 27)
-        Me.TextBox2.Multiline = True
-        Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(151, 136)
-        Me.TextBox2.TabIndex = 65
-        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(755, 529)
-        Me.Controls.Add(Me.TextBox2)
-        Me.Controls.Add(Me.TextBox1)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
@@ -496,6 +477,4 @@ Partial Class Form1
     Friend WithEvents Z As DataGridViewTextBoxColumn
     Friend WithEvents Activation As DataGridViewTextBoxColumn
     Friend WithEvents TestDeviceOutputsToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents TextBox1 As TextBox
-    Friend WithEvents TextBox2 As TextBox
 End Class
