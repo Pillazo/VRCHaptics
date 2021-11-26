@@ -1,0 +1,5 @@
+C:\Users\Jenn\source\repos\VRCHaptics2\VRCHaptics2\obj\Debug\net40\VRCHaptics2.csproj.AssemblyReference.cache
+C:\Users\Jenn\source\repos\VRCHaptics2\VRCHaptics2\obj\Debug\net40\VRCHaptics2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jenn\source\repos\VRCHaptics2\VRCHaptics2\obj\Debug\net40\VRCHaptics2.AssemblyInfoInputs.cache
+C:\Users\Jenn\source\repos\VRCHaptics2\VRCHaptics2\obj\Debug\net40\VRCHaptics2.AssemblyInfo.cs
+C:\Users\Jenn\source\repos\VRCHaptics2\VRCHaptics2\obj\Debug\net40\VRCHaptics2.csproj.CoreCompileInputs.cache

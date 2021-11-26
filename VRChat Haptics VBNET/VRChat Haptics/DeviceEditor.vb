@@ -9,6 +9,7 @@
             Next
             Form1.NodeRootBone.Add(New List(Of Integer))
             Form1.NodeActivationDistance.Add(New List(Of Single))
+            Form1.NodeForce.Add(New List(Of Integer))
             Form1.NodeBoneOffset.Add(New List(Of OpenTK.Vector3))
             Form1.NodeFinalPos.Add(New List(Of OpenTK.Vector3))
             For i = 0 To NumericUpDown1.Value - 1
@@ -16,6 +17,7 @@
                 Form1.NodeActivationDistance(Form1.NodeDeviceNames.Count - 1).Add(0.05)
                 Form1.NodeBoneOffset(Form1.NodeDeviceNames.Count - 1).Add(New OpenTK.Vector3(0, 0, 0))
                 Form1.NodeFinalPos(Form1.NodeDeviceNames.Count - 1).Add(New OpenTK.Vector3(0, 0, 0))
+                Form1.NodeForce(Form1.NodeDeviceNames.Count - 1).Add(100)
             Next
 
             Form1.DGVDevice.Rows.Add()
@@ -33,6 +35,7 @@
                     Form1.NodeActivationDistance(Form1.NodeDeviceNames.Count - 1).Add(0.05)
                     Form1.NodeBoneOffset(Form1.DeviceIndex).Add(New OpenTK.Vector3(0, 0, 0))
                     Form1.NodeFinalPos(Form1.DeviceIndex).Add(New OpenTK.Vector3(0, 0, 0))
+                    Form1.NodeForce(Form1.DeviceIndex).Add(0)
                 Next
             ElseIf NumericUpDown1.Value < Form1.NodeOutputs(Form1.DeviceIndex).count Then
                 Dim difference As Integer = Form1.NodeOutputs(Form1.DeviceIndex).Count - NumericUpDown1.Value
@@ -42,6 +45,7 @@
                     Form1.NodeBoneOffset(Form1.DeviceIndex).RemoveAt(Form1.NodeBoneOffset(Form1.DeviceIndex).Count - 1)
                     Form1.NodeFinalPos(Form1.DeviceIndex).RemoveAt(Form1.NodeFinalPos(Form1.DeviceIndex).Count - 1)
                     Form1.NodeOutputs(Form1.DeviceIndex).Remove(0)
+                    Form1.NodeForce(Form1.DeviceIndex).RemoveAt(Form1.NodeActivationDistance(Form1.DeviceIndex).Count - 1)
                 Next
             End If
             Form1.DGVDevicesUpdate()

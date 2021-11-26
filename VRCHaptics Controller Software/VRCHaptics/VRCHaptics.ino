@@ -71,7 +71,7 @@ char networkPswd[50]; //Wifi password
 char deviceName[50];  //The name given to the device so it can recognize its packets
 int deviceNameLen = 0; //Another quick tool to help it recognize its own packets
 AsyncUDP udp; //Call out the UDP for use
-const int port = 2002; // Random port I pulled out of the air
+const int port = 2003; // Random port I pulled out of the air
 IPAddress broadcast=IPAddress(239,80,8,5); //Randon IP in the multicast range I pulled out the air too
 int DeviceNameBroadcastCountup = 0; //This is a counter/timer for every now and then spitting the device name out to the UDP, so the VB.net program can see the controller and mark it green
 bool thisDevice = false; //The 'is this packet for this device?' bit
@@ -462,7 +462,7 @@ void loop(){  //Main loop of the program! Starts after the setup code above
               }
               //Serial.println(dataStart);  //Debug
               if (packet.data()+dataStart != 0){ //So if the first byte doesn't equal a hard zero, add a time value to the timer so this output will begin buzzing!
-                Output01Time = 10;  /Adding essentially 100ms (0.1 seconds)
+                Output01Time = 10;  //Adding essentially 100ms (0.1 seconds)
                 Output01Power = (int)*(packet.data()+dataStart);  //This converts the byte to an intensity (0-255 where 0 is off, 255 is full power)
               }  
               if (packet.data()+dataStart+1 != 0){  //Repeat for the rest of the bytes of each output

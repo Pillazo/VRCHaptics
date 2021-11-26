@@ -16,7 +16,7 @@ Public Class Form1
     Dim GLLoaded As Boolean = False 'wait til 3D is loaded before doing anything to it
     Dim filez As String = "" 'Files in directory
     Dim dir As String = "Low\VRChat\vrchat\" 'temp fix later
-    Dim AppDatafolder As String = GetFolderPath(SpecialFolder.LocalApplicationData) 'Get the local data directory
+    Dim AppDatafolder As String = "C:\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Logs" 'Get the local data directory
     Dim logfound As Boolean = False 'Proper Log file found
     Dim reader As IO.StreamReader 'reader to read the file
     Dim Readz As String = "" 'the current line from the log, could or could not be a haptic event
@@ -54,11 +54,12 @@ Public Class Form1
     Dim slowrotateY As Single = 0   'Slow spin rotation
     Public NodeDeviceNames As New List(Of String)    'Name of Device for reference like 'head' or 'right arm' kinda thing
     Public NodeOutputs As New List(Of List(Of Boolean)) 'Output of device
-    Public NodeDeviceConnection As New List(Of Integer) 'Connection IP or type
+    Public NodeDeviceConnection As New List(Of Integer) 'Connection timeout
     Public NodeRootBone As New List(Of List(Of Integer))   'Bone Root Node is attached to (see debug packet)
     Public NodeBoneOffset As New List(Of List(Of Vector3))   'Offset from bone axis
     Public NodeFinalPos As New List(Of List(Of Vector3)) 'Final math'd position of the node
     Public NodeActivationDistance As New List(Of List(Of Single)) 'Distance anyone else needs to be to activate the node
+    Public NodeForce As New List(Of List(Of Integer)) 'The intensity of buzzing for each node
     Public DeviceIndex As Integer   'for sharing to the other dialog for device editing
     Public DeviceMethod As Integer = 0  'for sharing to the other dialog for device editing
     Dim DGVupdating As Boolean = False  'DGVNode ignores updates if DGVDevice is changing it
@@ -129,13 +130,14 @@ Public Class Form1
     'Count of Devices (int)
     'Device Name 1 (string)
     'Device Outputs 1 (int)
-    'Device Connection 1 (string)
     'Node Root Bone 1 (int)
     'Node Root Bone n
     'Node Root Bone Offset 1 (vector3)
     'Node Root Bone Offset n
     'Node Activation Distance 1 (Single)
     'Node Activation Distance n
+    'Node Force 1 (int)
+    'Node Force n
     'Device Name n
     '...
     'Whitelist count
@@ -158,8 +160,8 @@ Public Class Form1
 
         If VRCopen = True Then  'If VRC is open
             Try
-                filez = IO.Directory.GetFiles(AppDatafolder & dir, "*.txt").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest TXT file
-                If filez.Contains("output_log") Then 'output_log is in the default log file name
+                filez = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
+                If filez.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
                     Dim fs As New IO.FileStream(filez, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
                     reader = New IO.StreamReader(fs) 'Make it a reader
                     reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
@@ -261,8 +263,8 @@ Public Class Form1
 
             If logfound = False Then    'If the log file wasn't found the first time
                 Try
-                    filez = IO.Directory.GetFiles(AppDatafolder & dir, "*.txt").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest TXT file
-                    If filez.Contains("output_log") Then 'output_log is in the default log file name
+                    filez = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
+                    If filez.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
                         Dim fs As New IO.FileStream(filez, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
                         reader = New IO.StreamReader(fs) 'Make it a reader
                         reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
@@ -283,8 +285,8 @@ Public Class Form1
             Else    'If the log file was found and is running, just gotta check if a new one was created. Used for when closing and reopening VRC.
 
                 Try
-                    Dim latestfile As String = IO.Directory.GetFiles(AppDatafolder & dir, "*.txt").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest TXT file
-                    If latestfile.Contains("output_log") Then 'output_log is in the default log file name
+                    Dim latestfile As String = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
+                    If latestfile.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
                         If latestfile <> filez Then
                             Dim fs As New IO.FileStream(latestfile, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
                             reader = New IO.StreamReader(fs) 'Make it a reader
@@ -1070,7 +1072,7 @@ Public Class Form1
                 Next
                 For i2 = 0 To NodeOutputs(i).Count - 1
                     If NodeOutputs(i)(i2) = True Then 'We outputing this output outputedly?
-                        sendbytes(Prefix.Length + i2) = intensity 'Shift in output data for the device to use
+                        sendbytes(Prefix.Length + i2) = NodeForce(i)(i2) * 2.55 'Shift in output data for the device to use
                     Else
                         sendbytes(Prefix.Length + i2) = 0   'Else turn it off
                     End If
@@ -1522,6 +1524,7 @@ Public Class Form1
                     NodeFinalPos.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeRootBone.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeActivationDistance.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
+                    NodeForce.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     DGVDevice.Rows.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     DGVNodeUpdate() 'update nodes
                 End If
@@ -1564,6 +1567,7 @@ Public Class Form1
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(3).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).Y
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(4).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).Z
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(5).Value = NodeActivationDistance(DGVDevice.SelectedCells(0).RowIndex)(i)
+            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(6).Value = NodeForce(DGVDevice.SelectedCells(0).RowIndex)(i)
         Next
         DGVupdating = False 'This prevents the cell value changed event from happening cause its all original data
     End Sub
@@ -1589,6 +1593,17 @@ Public Class Form1
                 Catch ex As Exception
                     DGVNodes.Rows(e.RowIndex).Cells(5).Style.BackColor = Color.Red
                 End Try
+                Try
+                    NodeForce(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(6).Value
+                    DGVNodes.Rows(e.RowIndex).Cells(6).Style.BackColor = Color.White
+                    If DGVNodes.Rows(e.RowIndex).Cells(6).Value < 0 Then
+                        DGVNodes.Rows(e.RowIndex).Cells(6).Value = 0
+                    ElseIf DGVNodes.Rows(e.RowIndex).Cells(6).Value > 100 Then
+                        DGVNodes.Rows(e.RowIndex).Cells(6).Value = 100
+                    End If
+                Catch ex As Exception
+                    DGVNodes.Rows(e.RowIndex).Cells(6).Style.BackColor = Color.Red
+                End Try
                 Settingschanged = True 'Something changed, prompt at exit for save
             End If
         End If
@@ -1608,13 +1623,13 @@ Public Class Form1
     'Settings File
     Private Sub LoadDeviceNodeDescriptionToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LoadDeviceNodeDescriptionToolStripMenuItem.Click
         'Check to see if we already have settings and prompt
-        If NodeDeviceNames.Count <> 0 Then
-            If MessageBox.Show("Overwrite current settings?", "But wait", MessageBoxButtons.OKCancel) = MessageBoxButtons.OK Then
-                OFDSettings.ShowDialog()    'Load the Dialog
-            End If
-        Else
-            OFDSettings.ShowDialog()    'Load the Dialog
-        End If
+        'If NodeDeviceNames.Count <> 0 Then
+        'If MessageBox.Show("Overwrite current settings?", "But wait", MessageBoxButtons.OKCancel) = MessageBoxButtons.OK Then
+        'OFDSettings.ShowDialog()    'Load the Dialog
+        'End If
+        'Else
+        OFDSettings.ShowDialog()    'Load the Dialog
+        'End If
 
     End Sub
     Private Sub SaveDeviceNodeDescriptionToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaveDeviceNodeDescriptionToolStripMenuItem.Click
@@ -1638,6 +1653,7 @@ Public Class Form1
         NodeBoneOffset.Clear()
         NodeFinalPos.Clear()
         NodeActivationDistance.Clear()
+        NodeForce.Clear()
 
         DGVDevice.Rows.Clear()
 
@@ -1647,11 +1663,11 @@ Public Class Form1
         readstring = System.IO.File.ReadAllLines(OFDSettings.FileName) 'Read the file into the string array!
         GC.Collect()    'I mean, its probably the worst thing I could do here
 
-        If readstring(0) >= 1 Then   'Version control! Other versions can have elseif >=2 or something
-            intensity = readstring(1)
-            Dim DeviceCount As Integer = readstring(2)
+        If readstring(0) >= 2 Then   'Version control! Other versions can have elseif >=2 or something
+            'intensity = readstring(1)
+            Dim DeviceCount As Integer = readstring(1)
             Dim vectorsplit() As String 'Split the vector to 3 parts
-            Dim linesread As Integer = 3    'Math is hard
+            Dim linesread As Integer = 2    'Math is hard
             For i = 0 To DeviceCount - 1
                 NodeDeviceNames.Add(readstring(linesread))
                 NodeOutputs.Add(New List(Of Boolean))
@@ -1660,11 +1676,12 @@ Public Class Form1
                 Next
                 'NodeDeviceConnection.Add(readstring(2 + linesread))
                 NodeDeviceConnection.Add(0)
-                linesread = linesread + 3
+                linesread = linesread + 2
                 NodeRootBone.Add(New List(Of Integer))
                 NodeBoneOffset.Add(New List(Of OpenTK.Vector3))
                 NodeFinalPos.Add(New List(Of OpenTK.Vector3))
                 NodeActivationDistance.Add(New List(Of Single))
+                NodeForce.Add(New List(Of Integer))
                 For i2 = 0 To NodeOutputs(i).Count - 1
                     NodeRootBone(NodeDeviceNames.Count - 1).Add(readstring(linesread))
                     linesread = linesread + 1
@@ -1679,8 +1696,12 @@ Public Class Form1
                     NodeActivationDistance(NodeDeviceNames.Count - 1).Add(readstring(linesread))
                     linesread = linesread + 1
                 Next
+                For i2 = 0 To NodeOutputs(i).Count - 1
+                    NodeForce(NodeDeviceNames.Count - 1).Add(readstring(linesread))
+                    linesread = linesread + 1
+                Next
 
-                TrackBar1.Value = intensity
+                'TrackBar1.Value = intensity
                 DGVDevice.Rows.Add()
                 DGVDevice.Rows(DGVDevice.Rows.Count - 1).Cells(0).Value = NodeDeviceNames.Count
                 DGVDevice.Rows(DGVDevice.Rows.Count - 1).Cells(1).Value = NodeDeviceNames(NodeDeviceNames.Count - 1)
@@ -1700,13 +1721,13 @@ Public Class Form1
     Private Sub SettingsFileSave()
         Dim WriteList As New List(Of String)
 
-        WriteList.Add("1")  'Version number
-        WriteList.Add(intensity)
+        WriteList.Add("2")  'Version number
+        'WriteList.Add(intensity)
         WriteList.Add(NodeDeviceNames.Count.ToString)
         For i = 0 To NodeDeviceNames.Count - 1
             WriteList.Add(NodeDeviceNames(i))
             WriteList.Add(NodeOutputs(i).Count)
-            WriteList.Add(NodeDeviceConnection(i))
+            'WriteList.Add(NodeDeviceConnection(i))
             For i2 = 0 To NodeOutputs(i).Count - 1
                 WriteList.Add(NodeRootBone(i)(i2).ToString)
             Next
@@ -1715,6 +1736,9 @@ Public Class Form1
             Next
             For i2 = 0 To NodeOutputs(i).Count - 1
                 WriteList.Add(NodeActivationDistance(i)(i2))
+            Next
+            For i2 = 0 To NodeForce(i).Count - 1
+                WriteList.Add(NodeForce(i)(i2))
             Next
         Next
 
@@ -1744,12 +1768,6 @@ Public Class Form1
     'Setup device on wifi show dialog
     Private Sub SetWifiOnDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SetWifiOnDeviceToolStripMenuItem.Click
         DeviceWifi.Show()
-    End Sub
-
-    'Intensity scroll
-    Private Sub TrackBar1_Scroll(sender As Object, e As EventArgs) Handles TrackBar1.Scroll
-        intensity = TrackBar1.Value
-        Settingschanged = True
     End Sub
 
     'Test outputs toggle
