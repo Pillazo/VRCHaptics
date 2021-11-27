@@ -64,8 +64,10 @@ Public Class Form1
     Public DeviceMethod As Integer = 0  'for sharing to the other dialog for device editing
     Dim DGVupdating As Boolean = False  'DGVNode ignores updates if DGVDevice is changing it
     Dim RootBones As List(Of String) = New List(Of String) From {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"}  'Names of root bones
-
+    Dim sendbytezzz As Byte()
     Dim Avatarlocation As String    'Avatar STL file location
+
+
     Dim Avatarpoints As New List(Of Vector3)    'Avatar mesh face points
     Dim Avatarcolors As Drawing.Color   'Color of avatar
     Dim AvatarLoaded As Boolean = False 'Is the avatar loaded? bit
@@ -77,7 +79,7 @@ Public Class Form1
     Dim outputtestindex As Integer = 0  'For testing the outputs of the controller
     Public outputtest As Boolean = False    'Output test is on / off
     Dim outputtestdelay As Integer = 0  'Delay for each output during test
-    Dim intensity As Integer = 0    'Intensity slider
+    'Dim intensity As Integer = 0    'Intensity slider
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
 
@@ -157,6 +159,7 @@ Public Class Form1
         Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"))    'Set multicast IP address, matches on controller
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
         Multicaster.Client.ReceiveTimeout = 100 'Timeout
+        Multicaster.Client.Ttl = 10
 
         If VRCopen = True Then  'If VRC is open
             Try
@@ -329,7 +332,7 @@ Public Class Form1
             Dim rcvbytes() As Byte = Multicaster.Receive(ep)    'Define the bytes, retrieve anything out there
             Dim UDPString As String = System.Text.Encoding.ASCII.GetString(rcvbytes)    'Make those bytes into characters
             For i = 0 To NodeDeviceNames.Count - 1  'For each controller we have defined in our program...
-                If UDPString.Length = NodeDeviceNames(i).Length Then    'Does the recieved UDP packet match the name in length at least?
+                If UDPString.Length >= NodeDeviceNames(i).Length And UDPString.Contains("^P&") = False Then    'Does the recieved UDP packet match the name in length at least?
                     If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) Then 'If yes, does the name itself match?
                         DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green    'Yes found it color the box
                         DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
@@ -979,81 +982,14 @@ Public Class Form1
             Next
         Next
 
-        Select Case outputtestindex 'To test outputs of a device
-            Case 1
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 0 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(0) = True
-                End If
-            Case 2
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 1 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(1) = True
-                End If
-            Case 3
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 2 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(2) = True
-                End If
-            Case 4
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 3 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(3) = True
-                End If
-            Case 5
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 4 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(4) = True
-                End If
-            Case 6
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 5 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(5) = True
-                End If
-            Case 7
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 6 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(6) = True
-                End If
-            Case 8
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 7 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(7) = True
-                End If
-            Case 9
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 8 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(8) = True
-                End If
-            Case 10
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 9 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(9) = True
-                End If
-            Case 11
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 10 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(10) = True
-                End If
-            Case 12
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 11 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(11) = True
-                End If
-            Case 13
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 12 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(12) = True
-                End If
-            Case 14
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 13 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(13) = True
-                End If
-            Case 15
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 14 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(14) = True
-                End If
-            Case 16
-                If NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count > 15 Then
-                    NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(15) = True
-                End If
-        End Select
 
         If outputtest = True Then   'If output test is on
+            NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(outputtestindex) = True
             outputtestdelay = outputtestdelay + 1    'Add time for each output
             If outputtestdelay = 50 Then
-                outputtestindex = outputtestindex + 1   'Cycle through all the inputs
                 outputtestdelay = 0
-            End If
-            If outputtestindex = NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count + 1 Then    'Reset it when it gets to the max of the device
-                outputtestindex = 1
+                outputtestindex = 0
+                outputtest = False
             End If
         Else
             outputtestindex = 0 'If not output testing, set this to zero
@@ -1609,6 +1545,16 @@ Public Class Form1
         End If
     End Sub
 
+    'Test button pushed
+    Private Sub DGVNodes_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DGVNodes.CellContentClick
+        Dim senderGrid = DirectCast(sender, DataGridView)
+        If TypeOf senderGrid.Columns(e.ColumnIndex) Is DataGridViewButtonColumn AndAlso
+            e.RowIndex >= 0 Then
+            outputtest = True
+            outputtestindex = e.RowIndex
+        End If
+    End Sub
+
     'Devices update
     Public Sub DGVDevicesUpdate() 'Clears out the devices and reloads them
         DGVDevice.Rows.Clear()
@@ -1771,7 +1717,7 @@ Public Class Form1
     End Sub
 
     'Test outputs toggle
-    Private Sub TestDeviceOutputsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles TestDeviceOutputsToolStripMenuItem.Click
+    Private Sub TestDeviceOutputsToolStripMenuItem_Click(sender As Object, e As EventArgs)
         If outputtest = True Then
             outputtest = False
             TestDeviceOutputsToolStripMenuItem.Checked = False
@@ -1790,4 +1736,5 @@ Public Class Form1
             End If
         End If
     End Sub
+
 End Class

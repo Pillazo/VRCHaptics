@@ -71,7 +71,7 @@ char networkPswd[50]; //Wifi password
 char deviceName[50];  //The name given to the device so it can recognize its packets
 int deviceNameLen = 0; //Another quick tool to help it recognize its own packets
 AsyncUDP udp; //Call out the UDP for use
-const int port = 2003; // Random port I pulled out of the air
+const int port = 2002; // Random port I pulled out of the air
 IPAddress broadcast=IPAddress(239,80,8,5); //Randon IP in the multicast range I pulled out the air too
 int DeviceNameBroadcastCountup = 0; //This is a counter/timer for every now and then spitting the device name out to the UDP, so the VB.net program can see the controller and mark it green
 bool thisDevice = false; //The 'is this packet for this device?' bit
@@ -274,7 +274,7 @@ void loop(){  //Main loop of the program! Starts after the setup code above
         digitalWrite(LED_PIN, HIGH); //Set LED high
       }
       
-      if (FactoryResetTimer > 100){ //If it was simply just longer than 1 second, then put the device to sleep
+      if (FactoryResetTimer > 10){ //If it was simply just longer than 0.1 second, then put the device to sleep
         Serial.println("Going to sleep"); //Send sleep message to USB
         digitalWrite(LED_PIN, LOW); //Turn off LED
         ledcWrite(0, 0);  //Turn off all outputs
@@ -432,6 +432,9 @@ void loop(){  //Main loop of the program! Starts after the setup code above
         if (DeviceNameBroadcastCountup > 100){ //Send Device name via multicast
           DeviceNameBroadcastCountup = 0; //Reset timer first
           udp.print(deviceName);  //Then spit device name out to network
+          udp.broadcast(deviceName);
+          digitalWrite(LED_PIN, ledState);  //Flip the LED output
+          ledState = (ledState + 1) % 2; // Flip the LED state
         }
         
         udp.onPacket([](AsyncUDPPacket packet) {  //Get packet from network!

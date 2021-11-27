@@ -29,6 +29,14 @@ Partial Class Form1
         Me.LblLogStatus = New System.Windows.Forms.Label()
         Me.RetryTimer = New System.Windows.Forms.Timer(Me.components)
         Me.DGVNodes = New System.Windows.Forms.DataGridView()
+        Me.Output = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.RootBone = New System.Windows.Forms.DataGridViewComboBoxColumn()
+        Me.X = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Y = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Z = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Activation = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Force = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Test = New System.Windows.Forms.DataGridViewButtonColumn()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
         Me.DGVDevice = New System.Windows.Forms.DataGridView()
@@ -44,7 +52,6 @@ Partial Class Form1
         Me.EditDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RemoveDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SetWifiOnDeviceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.TestDeviceOutputsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AvatarToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.LoadAvatarToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RotateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -62,14 +69,7 @@ Partial Class Form1
         Me.Button2 = New System.Windows.Forms.Button()
         Me.OFDSettings = New System.Windows.Forms.OpenFileDialog()
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
-        Me.Output = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.RootBone = New System.Windows.Forms.DataGridViewComboBoxColumn()
-        Me.X = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Y = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Z = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Activation = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Force = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Test = New System.Windows.Forms.DataGridViewButtonColumn()
+        Me.Button3 = New System.Windows.Forms.Button()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -114,6 +114,59 @@ Partial Class Form1
         Me.DGVNodes.RowHeadersVisible = False
         Me.DGVNodes.Size = New System.Drawing.Size(338, 267)
         Me.DGVNodes.TabIndex = 51
+        '
+        'Output
+        '
+        Me.Output.HeaderText = "#"
+        Me.Output.Name = "Output"
+        Me.Output.ReadOnly = True
+        Me.Output.Width = 20
+        '
+        'RootBone
+        '
+        Me.RootBone.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill
+        Me.RootBone.HeaderText = "Root Bone"
+        Me.RootBone.Items.AddRange(New Object() {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"})
+        Me.RootBone.Name = "RootBone"
+        Me.RootBone.Resizable = System.Windows.Forms.DataGridViewTriState.[True]
+        Me.RootBone.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic
+        '
+        'X
+        '
+        Me.X.HeaderText = "X"
+        Me.X.Name = "X"
+        Me.X.Width = 35
+        '
+        'Y
+        '
+        Me.Y.HeaderText = "Y"
+        Me.Y.Name = "Y"
+        Me.Y.Width = 35
+        '
+        'Z
+        '
+        Me.Z.HeaderText = "Z"
+        Me.Z.Name = "Z"
+        Me.Z.Width = 35
+        '
+        'Activation
+        '
+        Me.Activation.HeaderText = "D"
+        Me.Activation.Name = "Activation"
+        Me.Activation.Width = 35
+        '
+        'Force
+        '
+        Me.Force.HeaderText = "Force"
+        Me.Force.Name = "Force"
+        Me.Force.Width = 35
+        '
+        'Test
+        '
+        Me.Test.HeaderText = "Test"
+        Me.Test.Name = "Test"
+        Me.Test.Text = "Test"
+        Me.Test.Width = 35
         '
         'GroupBox1
         '
@@ -181,24 +234,24 @@ Partial Class Form1
         'LoadDeviceNodeDescriptionToolStripMenuItem
         '
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Name = "LoadDeviceNodeDescriptionToolStripMenuItem"
-        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Text = "Load Settings"
         '
         'SaveDeviceNodeDescriptionToolStripMenuItem
         '
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Name = "SaveDeviceNodeDescriptionToolStripMenuItem"
-        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Text = "Save Settings"
         '
         'CloseToolStripMenuItem
         '
         Me.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
-        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
         Me.CloseToolStripMenuItem.Text = "Close"
         '
         'DeviceToolStripMenuItem
         '
-        Me.DeviceToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AddDeviceToolStripMenuItem, Me.EditDeviceToolStripMenuItem, Me.RemoveDeviceToolStripMenuItem, Me.SetWifiOnDeviceToolStripMenuItem, Me.TestDeviceOutputsToolStripMenuItem})
+        Me.DeviceToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AddDeviceToolStripMenuItem, Me.EditDeviceToolStripMenuItem, Me.RemoveDeviceToolStripMenuItem, Me.SetWifiOnDeviceToolStripMenuItem})
         Me.DeviceToolStripMenuItem.Name = "DeviceToolStripMenuItem"
         Me.DeviceToolStripMenuItem.Size = New System.Drawing.Size(54, 20)
         Me.DeviceToolStripMenuItem.Text = "Device"
@@ -226,12 +279,6 @@ Partial Class Form1
         Me.SetWifiOnDeviceToolStripMenuItem.Name = "SetWifiOnDeviceToolStripMenuItem"
         Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SetWifiOnDeviceToolStripMenuItem.Text = "Set Wifi on Device"
-        '
-        'TestDeviceOutputsToolStripMenuItem
-        '
-        Me.TestDeviceOutputsToolStripMenuItem.Name = "TestDeviceOutputsToolStripMenuItem"
-        Me.TestDeviceOutputsToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
-        Me.TestDeviceOutputsToolStripMenuItem.Text = "Test Device Outputs"
         '
         'AvatarToolStripMenuItem
         '
@@ -341,64 +388,21 @@ Partial Class Form1
         '
         Me.SFDSettings.Filter = "VRHaptics File|*.vrh"
         '
-        'Output
+        'Button3
         '
-        Me.Output.HeaderText = "#"
-        Me.Output.Name = "Output"
-        Me.Output.ReadOnly = True
-        Me.Output.Width = 20
-        '
-        'RootBone
-        '
-        Me.RootBone.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill
-        Me.RootBone.HeaderText = "Root Bone"
-        Me.RootBone.Items.AddRange(New Object() {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"})
-        Me.RootBone.Name = "RootBone"
-        Me.RootBone.Resizable = System.Windows.Forms.DataGridViewTriState.[True]
-        Me.RootBone.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic
-        '
-        'X
-        '
-        Me.X.HeaderText = "X"
-        Me.X.Name = "X"
-        Me.X.Width = 35
-        '
-        'Y
-        '
-        Me.Y.HeaderText = "Y"
-        Me.Y.Name = "Y"
-        Me.Y.Width = 35
-        '
-        'Z
-        '
-        Me.Z.HeaderText = "Z"
-        Me.Z.Name = "Z"
-        Me.Z.Width = 35
-        '
-        'Activation
-        '
-        Me.Activation.HeaderText = "D"
-        Me.Activation.Name = "Activation"
-        Me.Activation.Width = 35
-        '
-        'Force
-        '
-        Me.Force.HeaderText = "Force"
-        Me.Force.Name = "Force"
-        Me.Force.Width = 35
-        '
-        'Test
-        '
-        Me.Test.HeaderText = "Test"
-        Me.Test.Name = "Test"
-        Me.Test.Text = "Test"
-        Me.Test.Width = 35
+        Me.Button3.Location = New System.Drawing.Point(41, 52)
+        Me.Button3.Name = "Button3"
+        Me.Button3.Size = New System.Drawing.Size(84, 38)
+        Me.Button3.TabIndex = 59
+        Me.Button3.Text = "Send"
+        Me.Button3.UseVisualStyleBackColor = True
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(755, 529)
+        Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.GroupBox2)
@@ -458,7 +462,6 @@ Partial Class Form1
     Friend WithEvents KeepAtFrontToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SpinToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SetWifiOnDeviceToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents TestDeviceOutputsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents Output As DataGridViewTextBoxColumn
     Friend WithEvents RootBone As DataGridViewComboBoxColumn
     Friend WithEvents X As DataGridViewTextBoxColumn
@@ -467,4 +470,5 @@ Partial Class Form1
     Friend WithEvents Activation As DataGridViewTextBoxColumn
     Friend WithEvents Force As DataGridViewTextBoxColumn
     Friend WithEvents Test As DataGridViewButtonColumn
+    Friend WithEvents Button3 As Button
 End Class
