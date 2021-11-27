@@ -1716,18 +1716,6 @@ Public Class Form1
         DeviceWifi.Show()
     End Sub
 
-    'Test outputs toggle
-    Private Sub TestDeviceOutputsToolStripMenuItem_Click(sender As Object, e As EventArgs)
-        If outputtest = True Then
-            outputtest = False
-            TestDeviceOutputsToolStripMenuItem.Checked = False
-        Else
-            outputtest = True
-            outputtestindex = 1
-            TestDeviceOutputsToolStripMenuItem.Checked = True
-        End If
-    End Sub
-
     'Form closing, request save if something changed
     Private Sub Form1_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
         If Settingschanged = True Then
