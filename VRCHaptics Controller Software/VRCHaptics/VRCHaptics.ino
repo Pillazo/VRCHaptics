@@ -292,7 +292,8 @@ void loop(){  //Main loop of the program! Starts after the setup code above
         ledcWrite(12, 0);
         ledcWrite(13, 0);
         ledcWrite(14, 0);
-        ledcWrite(15, 0);        
+        ledcWrite(15, 0); 
+        udp.close();       
         delay(5000); //Wait 5 whole seconds
         esp_deep_sleep_start(); //Put device to sleep, when it wakes up by the push button it starts at the top of setup
       }
@@ -428,19 +429,11 @@ void loop(){  //Main loop of the program! Starts after the setup code above
      
 // Recieve Packet
      if(udp.listenMulticast(broadcast, port)) { //If the network is setup (UDP connected to multicast)
-        DeviceNameBroadcastCountup = DeviceNameBroadcastCountup + 1;  //Add time to timer for spitting name out for VB.net program to find
-        if (DeviceNameBroadcastCountup > 100){ //Send Device name via multicast
-          DeviceNameBroadcastCountup = 0; //Reset timer first
-          udp.print(deviceName);  //Then spit device name out to network
-          udp.broadcast(deviceName);
-          digitalWrite(LED_PIN, ledState);  //Flip the LED output
-          ledState = (ledState + 1) % 2; // Flip the LED state
-        }
-        
+
         udp.onPacket([](AsyncUDPPacket packet) {  //Get packet from network!
           
             thisDevice = false; //Start with saying this packet isn't for this device
-            if (packet.length() == (deviceNameLen + 23)){  //However if the device's name length in characters and the rest of the standard packet match...
+            if (packet.length() >= (deviceNameLen + 23)){  //However if the device's name length in characters and the rest of the standard packet match...
               thisDevice = true; //Set it to a tentative maybe
               for (int i = 0 ; i < deviceNameLen ; i++) { //Go through each character of the name
                 if ((char)*(packet.data()+i) != deviceName[i]){ //If it doesn't match
@@ -528,8 +521,16 @@ void loop(){  //Main loop of the program! Starts after the setup code above
                 Output16Time = 10;
                 Output16Power = (int)*(packet.data()+dataStart+15);
               }       
-            }            
+            }         
         });
+        DeviceNameBroadcastCountup = DeviceNameBroadcastCountup + 1;  //Add time to timer for spitting name out for VB.net program to find
+        if (DeviceNameBroadcastCountup > 100){ //Send Device name via multicast
+          DeviceNameBroadcastCountup = 0; //Reset timer first
+          udp.print(deviceName);  //Then spit device name out to network
+          udp.broadcast(deviceName);
+          digitalWrite(LED_PIN, ledState);  //Flip the LED output
+          ledState = (ledState + 1) % 2; // Flip the LED state
+        }
     }  
   } 
 }

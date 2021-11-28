@@ -45,6 +45,10 @@ namespace VRCHaptics2
                         (p.GetBonePosition(HumanBodyBones.LeftLowerLeg) * 10).ToString() +
                         (p.GetBonePosition(HumanBodyBones.RightFoot) * 10).ToString() +
                         (p.GetBonePosition(HumanBodyBones.LeftFoot) * 10).ToString() +
+                        (p.GetBonePosition(HumanBodyBones.RightIndexDistal) * 10).ToString() +
+                        (p.GetBonePosition(HumanBodyBones.LeftIndexDistal) * 10).ToString() +
+                        (p.GetBonePosition(HumanBodyBones.RightThumbDistal) * 10).ToString() +
+                        (p.GetBonePosition(HumanBodyBones.LeftThumbDistal) * 10).ToString() +
                         "(" + p.GetBoneRotation(HumanBodyBones.Head).x.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.Head).y.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.Head).z.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.Head).w.ToString("F7") + ")" +
                         "(" + p.GetBoneRotation(HumanBodyBones.RightHand).x.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.RightHand).y.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.RightHand).z.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.RightHand).w.ToString("F7") + ")" +
                         "(" + p.GetBoneRotation(HumanBodyBones.LeftHand).x.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.LeftHand).y.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.LeftHand).z.ToString("F7") + "," + p.GetBoneRotation(HumanBodyBones.LeftHand).w.ToString("F7") + ")" +

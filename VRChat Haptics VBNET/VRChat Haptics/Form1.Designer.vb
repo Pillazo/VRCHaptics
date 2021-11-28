@@ -66,10 +66,8 @@ Partial Class Form1
         Me.SpinToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OFDAvatar = New System.Windows.Forms.OpenFileDialog()
         Me.Button1 = New System.Windows.Forms.Button()
-        Me.Button2 = New System.Windows.Forms.Button()
         Me.OFDSettings = New System.Windows.Forms.OpenFileDialog()
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
-        Me.Button3 = New System.Windows.Forms.Button()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -79,7 +77,7 @@ Partial Class Form1
         '
         'MainTimer
         '
-        Me.MainTimer.Interval = 10
+        Me.MainTimer.Interval = 50
         '
         'GlControl1
         '
@@ -234,19 +232,19 @@ Partial Class Form1
         'LoadDeviceNodeDescriptionToolStripMenuItem
         '
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Name = "LoadDeviceNodeDescriptionToolStripMenuItem"
-        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Text = "Load Settings"
         '
         'SaveDeviceNodeDescriptionToolStripMenuItem
         '
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Name = "SaveDeviceNodeDescriptionToolStripMenuItem"
-        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Text = "Save Settings"
         '
         'CloseToolStripMenuItem
         '
         Me.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
-        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(145, 22)
+        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.CloseToolStripMenuItem.Text = "Close"
         '
         'DeviceToolStripMenuItem
@@ -290,14 +288,14 @@ Partial Class Form1
         'LoadAvatarToolStripMenuItem
         '
         Me.LoadAvatarToolStripMenuItem.Name = "LoadAvatarToolStripMenuItem"
-        Me.LoadAvatarToolStripMenuItem.Size = New System.Drawing.Size(137, 22)
+        Me.LoadAvatarToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.LoadAvatarToolStripMenuItem.Text = "Load Avatar"
         '
         'RotateToolStripMenuItem
         '
         Me.RotateToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.X90ToolStripMenuItem, Me.X90ToolStripMenuItem1, Me.Y90ToolStripMenuItem, Me.Y90ToolStripMenuItem1, Me.Z90ToolStripMenuItem, Me.Z90ToolStripMenuItem1})
         Me.RotateToolStripMenuItem.Name = "RotateToolStripMenuItem"
-        Me.RotateToolStripMenuItem.Size = New System.Drawing.Size(137, 22)
+        Me.RotateToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.RotateToolStripMenuItem.Text = "Rotate"
         '
         'X90ToolStripMenuItem
@@ -362,23 +360,12 @@ Partial Class Form1
         '
         'Button1
         '
-        Me.Button1.Enabled = False
-        Me.Button1.Location = New System.Drawing.Point(131, 53)
+        Me.Button1.Location = New System.Drawing.Point(261, 46)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(84, 38)
         Me.Button1.TabIndex = 57
-        Me.Button1.Text = "White List"
+        Me.Button1.Text = "Enable Self Touch"
         Me.Button1.UseVisualStyleBackColor = True
-        '
-        'Button2
-        '
-        Me.Button2.Enabled = False
-        Me.Button2.Location = New System.Drawing.Point(221, 53)
-        Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(84, 38)
-        Me.Button2.TabIndex = 58
-        Me.Button2.Text = "Avatars"
-        Me.Button2.UseVisualStyleBackColor = True
         '
         'OFDSettings
         '
@@ -388,22 +375,11 @@ Partial Class Form1
         '
         Me.SFDSettings.Filter = "VRHaptics File|*.vrh"
         '
-        'Button3
-        '
-        Me.Button3.Location = New System.Drawing.Point(41, 52)
-        Me.Button3.Name = "Button3"
-        Me.Button3.Size = New System.Drawing.Size(84, 38)
-        Me.Button3.TabIndex = 59
-        Me.Button3.Text = "Send"
-        Me.Button3.UseVisualStyleBackColor = True
-        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(755, 529)
-        Me.Controls.Add(Me.Button3)
-        Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.GroupBox2)
         Me.Controls.Add(Me.GroupBox1)
@@ -454,7 +430,6 @@ Partial Class Form1
     Friend WithEvents Z90ToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents Z90ToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents Button1 As Button
-    Friend WithEvents Button2 As Button
     Friend WithEvents OFDSettings As OpenFileDialog
     Friend WithEvents SFDSettings As SaveFileDialog
     Friend WithEvents CloseToolStripMenuItem As ToolStripMenuItem
@@ -470,5 +445,4 @@ Partial Class Form1
     Friend WithEvents Activation As DataGridViewTextBoxColumn
     Friend WithEvents Force As DataGridViewTextBoxColumn
     Friend WithEvents Test As DataGridViewButtonColumn
-    Friend WithEvents Button3 As Button
 End Class

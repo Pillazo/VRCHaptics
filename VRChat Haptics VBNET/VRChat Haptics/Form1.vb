@@ -22,10 +22,10 @@ Public Class Form1
     Dim Readz As String = "" 'the current line from the log, could or could not be a haptic event
     Dim Hapticsline As Boolean = False 'In case we have multiple lines come in at once, try a few out first
     Dim debugcounter As Integer = 0 'Counter for debug to make sure udon didn't break
-    Dim head, hips, chest, RShoulder, LShoulder, RLA, LLA, RHand, LHand, RUL, LUL, RLL, LLL, RFoot, LFoot As Vector3 'Local Player
+    Dim head, hips, chest, RShoulder, LShoulder, RLA, LLA, RHand, LHand, RUL, LUL, RLL, LLL, RFoot, LFoot, RID, LID, RTD, LTD As Vector3 'Local Player
     Dim headR, RHandR, LHandR, ChestR, HipsR As Quaternion    'Rotations from VRC
     Dim RshoulderR, LShoulderR, RLAR, LLAR, RULR, LULR, RLLR, LLLR As Vector3 ' math'd rotations from bone positions
-    Dim OPRTD, OPRID, OPLTD, OPLID, OPHead, OPHips, OPRFoot, OPLFoot As Vector3 'Other Player from debug
+    Dim OPRTD, OPRID, OPLTD, OPLID, OPHead, OPHips, OPRFoot, OPLFoot, OPChest, OPLUL, OPRUL, OPLLL, OPRLL, OPLUA, OPRUA, OPLLA, OPRLA, OPRShoulder, OPLShoulder, OPRHand, OPLHand As Vector3 'Other Player from debug
     Dim HeadRM, RHandRM, LHandRM, ChestRM, HipsRM, RShoulderM, RLAM, LShoulderM, LLAM, RULM, RLLM, LULM, LLLM As Matrix4 'Rotation matrixes
     Dim HeadVector, RHandV1, RHandV2, LHandV1, LHandV2 As Vector3 'Indicators on the 3D
     Dim CurrentRotation As Matrix4 = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
@@ -40,6 +40,19 @@ Public Class Form1
     Dim OPHipss As New List(Of Vector3)
     Dim OPRFoots As New List(Of Vector3)
     Dim OPLFoots As New List(Of Vector3)
+    Dim OPLUpperLegs As New List(Of Vector3)
+    Dim OPLLowerLegs As New List(Of Vector3)
+    Dim OPRUpperLegs As New List(Of Vector3)
+    Dim OPRLowerLegs As New List(Of Vector3)
+    Dim OPLUpperArms As New List(Of Vector3)
+    Dim OPLLowerArms As New List(Of Vector3)
+    Dim OPRUpperArms As New List(Of Vector3)
+    Dim OPRLowerArms As New List(Of Vector3)
+    Dim OPChests As New List(Of Vector3)
+    Dim OPRShoulders As New List(Of Vector3)
+    Dim OPLShoulders As New List(Of Vector3)
+    Dim OPRHands As New List(Of Vector3)
+    Dim OPLHands As New List(Of Vector3)
     Dim OPTime As New List(Of Integer) 'Duration of time since we've seen that player in milliseconds
     Dim lower As Single = 0 'bottom point of the avatar
 
@@ -66,7 +79,7 @@ Public Class Form1
     Dim RootBones As List(Of String) = New List(Of String) From {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"}  'Names of root bones
     Dim sendbytezzz As Byte()
     Dim Avatarlocation As String    'Avatar STL file location
-
+    Dim SelfTouch As Boolean = False
 
     Dim Avatarpoints As New List(Of Vector3)    'Avatar mesh face points
     Dim Avatarcolors As Drawing.Color   'Color of avatar
@@ -79,7 +92,6 @@ Public Class Form1
     Dim outputtestindex As Integer = 0  'For testing the outputs of the controller
     Public outputtest As Boolean = False    'Output test is on / off
     Dim outputtestdelay As Integer = 0  'Delay for each output during test
-    'Dim intensity As Integer = 0    'Intensity slider
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
 
@@ -160,6 +172,7 @@ Public Class Form1
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
         Multicaster.Client.ReceiveTimeout = 100 'Timeout
         Multicaster.Client.Ttl = 10
+        Multicaster.EnableBroadcast = True
 
         If VRCopen = True Then  'If VRC is open
             Try
@@ -378,278 +391,35 @@ Public Class Form1
                     Else
 
                         'Get local player bones
-                        'Head
-                        Dim headchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head from string
-                        Dim headpieces As String() = headchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            headpieces(0) = headpieces(0).Replace(".", ",")
-                            headpieces(1) = headpieces(1).Replace(".", ",")
-                            headpieces(2) = headpieces(2).Replace(".", ",")
-                        End If
-                        head.X = headpieces(0) / 10 'Head pieces to the vector3
-                        head.Y = headpieces(1) / 10
-                        head.Z = headpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
+                        head = Parser() 'Head
+                        hips = Parser() 'Hips
+                        chest = Parser() 'Chest
+                        RShoulder = Parser() 'Right Shoulder
+                        LShoulder = Parser() 'Left Shoulder
+                        RLA = Parser() 'Right Lower Arm (elbow)
+                        LLA = Parser() 'Left Lower Arm (elbow)
+                        RHand = Parser() 'Right Hand
+                        LHand = Parser() 'Left Hand
+                        RUL = Parser() 'Right Upper Leg
+                        LUL = Parser() 'Left Upper Leg
+                        RLL = Parser() 'Right Lower Leg (knee)
+                        LLL = Parser() 'Left Lower Leg (knee)
+                        RFoot = Parser() 'Right Foot
+                        LFoot = Parser() 'Left Foot
+                        RID = Parser() 'Right Index Distal
+                        LID = Parser() 'Left Index Distal
+                        RTD = Parser() 'Right Thumb Distal
+                        LTD = Parser() 'Left Thumb Distal
 
-                        'Hips
-                        Dim hipschunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just hips from string
-                        Dim hipspieces As String() = hipschunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            hipspieces(0) = hipspieces(0).Replace(".", ",")
-                            hipspieces(1) = hipspieces(1).Replace(".", ",")
-                            hipspieces(2) = hipspieces(2).Replace(".", ",")
-                        End If
-                        hips.X = hipspieces(0) / 10 'Hips pieces to the vector3
-                        hips.Y = hipspieces(1) / 10
-                        hips.Z = hipspieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Chest
-                        Dim Chestchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Chest from string
-                        Dim Chestpieces As String() = Chestchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            Chestpieces(0) = Chestpieces(0).Replace(".", ",")
-                            Chestpieces(1) = Chestpieces(1).Replace(".", ",")
-                            Chestpieces(2) = Chestpieces(2).Replace(".", ",")
-                        End If
-                        chest.X = Chestpieces(0) / 10 'Chest pieces to the vector3
-                        chest.Y = Chestpieces(1) / 10
-                        chest.Z = Chestpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Shoulder
-                        Dim RShoulderchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Shoulder from string
-                        Dim RShoulderpieces As String() = RShoulderchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            RShoulderpieces(0) = RShoulderpieces(0).Replace(".", ",")
-                            RShoulderpieces(1) = RShoulderpieces(1).Replace(".", ",")
-                            RShoulderpieces(2) = RShoulderpieces(2).Replace(".", ",")
-                        End If
-                        RShoulder.X = RShoulderpieces(0) / 10 'Right Shoulder pieces to the vector3
-                        RShoulder.Y = RShoulderpieces(1) / 10
-                        RShoulder.Z = RShoulderpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Shoulder
-                        Dim lShoulderchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Shoulder from string
-                        Dim lShoulderpieces As String() = lShoulderchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            lShoulderpieces(0) = lShoulderpieces(0).Replace(".", ",")
-                            lShoulderpieces(1) = lShoulderpieces(1).Replace(".", ",")
-                            lShoulderpieces(2) = lShoulderpieces(2).Replace(".", ",")
-                        End If
-                        LShoulder.X = lShoulderpieces(0) / 10 'Left Shoulder pieces to the vector3
-                        LShoulder.Y = lShoulderpieces(1) / 10
-                        LShoulder.Z = lShoulderpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Lower Arm (elbow)
-                        Dim RLAchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Arm (elbow) from string
-                        Dim RLApieces As String() = RLAchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            RLApieces(0) = RLApieces(0).Replace(".", ",")
-                            RLApieces(1) = RLApieces(1).Replace(".", ",")
-                            RLApieces(2) = RLApieces(2).Replace(".", ",")
-                        End If
-                        RLA.X = RLApieces(0) / 10 'Right Lower Arm (elbow) pieces to the vector3
-                        RLA.Y = RLApieces(1) / 10
-                        RLA.Z = RLApieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Lower Arm (elbow)
-                        Dim LLAchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Lower Arm (elbow) from string
-                        Dim LLApieces As String() = LLAchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            LLApieces(0) = LLApieces(0).Replace(".", ",")
-                            LLApieces(1) = LLApieces(1).Replace(".", ",")
-                            LLApieces(2) = LLApieces(2).Replace(".", ",")
-                        End If
-                        LLA.X = LLApieces(0) / 10 'Left Lower Arm (elbow) pieces to the vector3
-                        LLA.Y = LLApieces(1) / 10
-                        LLA.Z = LLApieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Hand
-                        Dim RHandchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Hand from string
-                        Dim RHandpieces As String() = RHandchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            RHandpieces(0) = RHandpieces(0).Replace(".", ",")
-                            RHandpieces(1) = RHandpieces(1).Replace(".", ",")
-                            RHandpieces(2) = RHandpieces(2).Replace(".", ",")
-                        End If
-                        RHand.X = RHandpieces(0) / 10 'Right Hand pieces to the vector3
-                        RHand.Y = RHandpieces(1) / 10
-                        RHand.Z = RHandpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Hand
-                        Dim LHandchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Hand from string
-                        Dim LHandpieces As String() = LHandchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            LHandpieces(0) = LHandpieces(0).Replace(".", ",")
-                            LHandpieces(1) = LHandpieces(1).Replace(".", ",")
-                            LHandpieces(2) = LHandpieces(2).Replace(".", ",")
-                        End If
-                        LHand.X = LHandpieces(0) / 10 'Left Hand pieces to the vector3
-                        LHand.Y = LHandpieces(1) / 10
-                        LHand.Z = LHandpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Upper Leg
-                        Dim Rulchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Upper Leg from string
-                        Dim Rulpieces As String() = Rulchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            Rulpieces(0) = Rulpieces(0).Replace(".", ",")
-                            Rulpieces(1) = Rulpieces(1).Replace(".", ",")
-                            Rulpieces(2) = Rulpieces(2).Replace(".", ",")
-                        End If
-                        RUL.X = Rulpieces(0) / 10 'Right Upper Leg pieces to the vector3
-                        RUL.Y = Rulpieces(1) / 10
-                        RUL.Z = Rulpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Upper Leg
-                        Dim lulchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Upper Leg from string
-                        Dim lulpieces As String() = lulchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            lulpieces(0) = lulpieces(0).Replace(".", ",")
-                            lulpieces(1) = lulpieces(1).Replace(".", ",")
-                            lulpieces(2) = lulpieces(2).Replace(".", ",")
-                        End If
-                        LUL.X = lulpieces(0) / 10 'Left Upper Leg pieces to the vector3
-                        LUL.Y = lulpieces(1) / 10
-                        LUL.Z = lulpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Lower Leg (knee)
-                        Dim Rllchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Leg (knee) from string
-                        Dim Rllpieces As String() = Rllchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            Rllpieces(0) = Rllpieces(0).Replace(".", ",")
-                            Rllpieces(1) = Rllpieces(1).Replace(".", ",")
-                            Rllpieces(2) = Rllpieces(2).Replace(".", ",")
-                        End If
-                        RLL.X = Rllpieces(0) / 10 'Right Lower Leg (knee) pieces to the vector3
-                        RLL.Y = Rllpieces(1) / 10
-                        RLL.Z = Rllpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Lower Leg (knee)
-                        Dim lllchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Lower Leg (knee) from string
-                        Dim lllpieces As String() = lllchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            lllpieces(0) = lllpieces(0).Replace(".", ",")
-                            lllpieces(1) = lllpieces(1).Replace(".", ",")
-                            lllpieces(2) = lllpieces(2).Replace(".", ",")
-                        End If
-                        LLL.X = lllpieces(0) / 10 'Left Lower Leg (knee) pieces to the vector3
-                        LLL.Y = lllpieces(1) / 10
-                        LLL.Z = lllpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Foot
-                        Dim RFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Foot from string
-                        Dim RFootpieces As String() = RFootchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            RFootpieces(0) = RFootpieces(0).Replace(".", ",")
-                            RFootpieces(1) = RFootpieces(1).Replace(".", ",")
-                            RFootpieces(2) = RFootpieces(2).Replace(".", ",")
-                        End If
-                        RFoot.X = RFootpieces(0) / 10 'Right Foot pieces to the vector3
-                        RFoot.Y = RFootpieces(1) / 10
-                        RFoot.Z = RFootpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Foot
-                        Dim lFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Foot from string
-                        Dim lFootpieces As String() = lFootchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            lFootpieces(0) = lFootpieces(0).Replace(".", ",")
-                            lFootpieces(1) = lFootpieces(1).Replace(".", ",")
-                            lFootpieces(2) = lFootpieces(2).Replace(".", ",")
-                        End If
-                        LFoot.X = lFootpieces(0) / 10 'Left Foot pieces to the vector3
-                        LFoot.Y = lFootpieces(1) / 10
-                        LFoot.Z = lFootpieces(2) / 10
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Head Rotation
-                        Dim HeadRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
-                        Dim HeadRpieces As String() = HeadRchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            HeadRpieces(0) = HeadRpieces(0).Replace(".", ",")
-                            HeadRpieces(1) = HeadRpieces(1).Replace(".", ",")
-                            HeadRpieces(2) = HeadRpieces(2).Replace(".", ",")
-                            HeadRpieces(3) = HeadRpieces(3).Replace(".", ",")
-                        End If
-                        headR.X = HeadRpieces(0) 'Head Rotation pieces to the vector3
-                        headR.Y = HeadRpieces(1)
-                        headR.Z = HeadRpieces(2)
-                        headR.W = HeadRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Right Hand Rotation
-                        Dim RHandRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Hand Rotation from string
-                        Dim RHandRpieces As String() = RHandRchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            RHandRpieces(0) = RHandRpieces(0).Replace(".", ",")
-                            RHandRpieces(1) = RHandRpieces(1).Replace(".", ",")
-                            RHandRpieces(2) = RHandRpieces(2).Replace(".", ",")
-                            RHandRpieces(3) = RHandRpieces(3).Replace(".", ",")
-                        End If
-                        RHandR.X = RHandRpieces(0) 'Right Hand Rotation pieces to the vector3
-                        RHandR.Y = RHandRpieces(1)
-                        RHandR.Z = RHandRpieces(2)
-                        RHandR.W = RHandRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Left Hand Rotation
-                        Dim LHandRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Hand Rotation from string
-                        Dim LHandRpieces As String() = LHandRchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            LHandRpieces(0) = LHandRpieces(0).Replace(".", ",")
-                            LHandRpieces(1) = LHandRpieces(1).Replace(".", ",")
-                            LHandRpieces(2) = LHandRpieces(2).Replace(".", ",")
-                            LHandRpieces(3) = LHandRpieces(3).Replace(".", ",")
-                        End If
-                        LHandR.X = LHandRpieces(0) 'Left Hand Rotation pieces to the vector3
-                        LHandR.Y = LHandRpieces(1)
-                        LHandR.Z = LHandRpieces(2)
-                        LHandR.W = LHandRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Chest Rotation
-                        Dim ChestRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
-                        Dim ChestRpieces As String() = ChestRchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            ChestRpieces(0) = ChestRpieces(0).Replace(".", ",")
-                            ChestRpieces(1) = ChestRpieces(1).Replace(".", ",")
-                            ChestRpieces(2) = ChestRpieces(2).Replace(".", ",")
-                            ChestRpieces(3) = ChestRpieces(3).Replace(".", ",")
-                        End If
-                        ChestR.X = ChestRpieces(0) 'Head Rotation pieces to the vector3
-                        ChestR.Y = ChestRpieces(1)
-                        ChestR.Z = ChestRpieces(2)
-                        ChestR.W = ChestRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                        'Hips Rotation
-                        Dim HipsRchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
-                        Dim HipsRpieces As String() = HipsRchunk.Split(",") 'Split it apart
-                        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                            HipsRpieces(0) = HipsRpieces(0).Replace(".", ",")
-                            HipsRpieces(1) = HipsRpieces(1).Replace(".", ",")
-                            HipsRpieces(2) = HipsRpieces(2).Replace(".", ",")
-                            HipsRpieces(3) = HipsRpieces(3).Replace(".", ",")
-                        End If
-                        HipsR.X = HipsRpieces(0) 'Head Rotation pieces to the vector3
-                        HipsR.Y = HipsRpieces(1)
-                        HipsR.Z = HipsRpieces(2)
-                        HipsR.W = HipsRpieces(3)
-                        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
+                        headR = RParser() 'Head Rotation
+                        RHandR = RParser() 'Right Hand Rotation
+                        LHandR = RParser() 'Left Hand Rotation
+                        ChestR = RParser() 'Chest Rotation
+                        HipsR = RParser() 'Hips Rotation
 
                         Dim difference As Vector3 = hips 'Grab where the center should be
 
+                        OtherPlayers.Clear()
                         OPRTDs.Clear()  'Clear out other player's bones for this round
                         OPRIDs.Clear()
                         OPLTDs.Clear()
@@ -658,115 +428,46 @@ Public Class Form1
                         OPHipss.Clear()
                         OPRFoots.Clear()
                         OPLFoots.Clear()
-                        OtherPlayers.Clear()
+                        OPRLowerArms.Clear()
+                        OPLLowerArms.Clear()
+                        OPRUpperLegs.Clear()
+                        OPLUpperLegs.Clear()
+                        OPRLowerLegs.Clear()
+                        OPLLowerLegs.Clear()
+                        OPRHands.Clear()
+                        OPLHands.Clear()
+                        OPChests.Clear()
+                        OPRShoulders.Clear()
+                        OPLShoulders.Clear()
+
 
                         Dim otherplayercount As Integer = (Readz.Length - Readz.Replace("^/^", String.Empty).Length) / 3 'how man other players are close enough to me?
 
                         For i = 0 To otherplayercount - 1 'for each of them...
-
-                            'Other Player's Right Thumb Distal
-                            Dim OPRTDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Thumb Distal from string
-                            Dim OPRTDpieces As String() = OPRTDchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPRTDpieces(0) = OPRTDpieces(0).Replace(".", ",")
-                                OPRTDpieces(1) = OPRTDpieces(1).Replace(".", ",")
-                                OPRTDpieces(2) = OPRTDpieces(2).Replace(".", ",")
-                            End If
-                            OPRTD.X = OPRTDpieces(0) / 10 'Right Thumb Distal pieces to the vector3
-                            OPRTD.Y = OPRTDpieces(1) / 10
-                            OPRTD.Z = OPRTDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other Player's Right Index Distal
-                            Dim OPRiDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Index Distal from string
-                            Dim OPRiDpieces As String() = OPRiDchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPRiDpieces(0) = OPRiDpieces(0).Replace(".", ",")
-                                OPRiDpieces(1) = OPRiDpieces(1).Replace(".", ",")
-                                OPRiDpieces(2) = OPRiDpieces(2).Replace(".", ",")
-                            End If
-                            OPRID.X = OPRiDpieces(0) / 10 'Right Index Distal pieces to the vector3
-                            OPRID.Y = OPRiDpieces(1) / 10
-                            OPRID.Z = OPRiDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other Player's Left Thumb Distal
-                            Dim OPlTDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Thumb Distal from string
-                            Dim OPlTDpieces As String() = OPlTDchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPlTDpieces(0) = OPlTDpieces(0).Replace(".", ",")
-                                OPlTDpieces(1) = OPlTDpieces(1).Replace(".", ",")
-                                OPlTDpieces(2) = OPlTDpieces(2).Replace(".", ",")
-                            End If
-                            OPLTD.X = OPlTDpieces(0) / 10 'Left Thumb Distal pieces to the vector3
-                            OPLTD.Y = OPlTDpieces(1) / 10
-                            OPLTD.Z = OPlTDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other Player's Left Index Distal
-                            Dim OPliDchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Index Distal from string
-                            Dim OPliDpieces As String() = OPliDchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPliDpieces(0) = OPliDpieces(0).Replace(".", ",")
-                                OPliDpieces(1) = OPliDpieces(1).Replace(".", ",")
-                                OPliDpieces(2) = OPliDpieces(2).Replace(".", ",")
-                            End If
-                            OPLID.X = OPliDpieces(0) / 10 'Left Index Distal pieces to the vector3
-                            OPLID.Y = OPliDpieces(1) / 10
-                            OPLID.Z = OPliDpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other player's Head
-                            Dim OPheadchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head from string
-                            Dim OPheadpieces As String() = OPheadchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPheadpieces(0) = OPheadpieces(0).Replace(".", ",")
-                                OPheadpieces(1) = OPheadpieces(1).Replace(".", ",")
-                                OPheadpieces(2) = OPheadpieces(2).Replace(".", ",")
-                            End If
-                            OPHead.X = OPheadpieces(0) / 10 'Head pieces to the vector3
-                            OPHead.Y = OPheadpieces(1) / 10
-                            OPHead.Z = OPheadpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other player's Hips
-                            Dim OPHipschunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Hips from string
-                            Dim OPHipspieces As String() = OPHipschunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPHipspieces(0) = OPHipspieces(0).Replace(".", ",")
-                                OPHipspieces(1) = OPHipspieces(1).Replace(".", ",")
-                                OPHipspieces(2) = OPHipspieces(2).Replace(".", ",")
-                            End If
-                            OPHips.X = OPHipspieces(0) / 10 'Hips pieces to the vector3
-                            OPHips.Y = OPHipspieces(1) / 10
-                            OPHips.Z = OPHipspieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other player's Right Foot
-                            Dim OPRFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Foot from string
-                            Dim OPRFootpieces As String() = OPRFootchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPRFootpieces(0) = OPRFootpieces(0).Replace(".", ",")
-                                OPRFootpieces(1) = OPRFootpieces(1).Replace(".", ",")
-                                OPRFootpieces(2) = OPRFootpieces(2).Replace(".", ",")
-                            End If
-                            OPRFoot.X = OPRFootpieces(0) / 10 'Right Foot pieces to the vector3
-                            OPRFoot.Y = OPRFootpieces(1) / 10
-                            OPRFoot.Z = OPRFootpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-
-                            'Other player's Left Foot
-                            Dim OPlFootchunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Left Foot from string
-                            Dim OPlFootpieces As String() = OPlFootchunk.Split(",") 'Split it apart
-                            If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-                                OPlFootpieces(0) = OPlFootpieces(0).Replace(".", ",")
-                                OPlFootpieces(1) = OPlFootpieces(1).Replace(".", ",")
-                                OPlFootpieces(2) = OPlFootpieces(2).Replace(".", ",")
-                            End If
-                            OPLFoot.X = OPlFootpieces(0) / 10 'Left Foot pieces to the vector3
-                            OPLFoot.Y = OPlFootpieces(1) / 10
-                            OPLFoot.Z = OPlFootpieces(2) / 10
-                            Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
+                            OPHead = Parser() 'Other player's Head
+                            OPHips = Parser() 'Other player's Hips
+                            OPChest = Parser() 'Chest
+                            OPRShoulder = Parser() 'Right Shoulder
+                            OPLShoulder = Parser() 'Left Shoulder
+                            OPRLA = Parser() 'Right Lower Arm
+                            OPLLA = Parser() 'Left Lower Arm
+                            OPRHand = Parser() 'Right Hand
+                            OPLHand = Parser() 'Left Hand
+                            OPRUL = Parser() 'Right Upper Leg
+                            OPLUL = Parser() 'Left Upper Leg
+                            OPRLL = Parser() 'Right Lower Leg
+                            OPLLL = Parser() 'Left Lower Leg
+                            OPRFoot = Parser() 'Other player's Right Foot
+                            OPLFoot = Parser() 'Other player's Left Foot
+                            OPRTD = Parser() 'Other Player's Right Thumb Distal
+                            OPRID = Parser() 'Other Player's Right Index Distal
+                            OPLTD = Parser() 'Other Player's Left Thumb Distal
+                            OPLID = Parser() 'Other Player's Left Index Distal
+                            RParser() 'Throw away the other player rotations
+                            RParser()
+                            RParser()
+                            RParser()
+                            RParser()
 
                             'Get other player Names
                             If i + 1 = otherplayercount Then ' on the last name?
@@ -783,8 +484,19 @@ Public Class Form1
                             OPLID = OPLID - difference
                             OPHead = OPHead - difference
                             OPHips = OPHips - difference
+                            OPChest = OPChest - difference
                             OPRFoot = OPRFoot - difference
                             OPLFoot = OPLFoot - difference
+                            OPLUL = OPLUL - difference
+                            OPRUL = OPRUL - difference
+                            OPLLL = OPLLL - difference
+                            OPRLL = OPRLL - difference
+                            OPLLA = OPLLA - difference
+                            OPRLA = OPRLA - difference
+                            OPRShoulder = OPRShoulder - difference
+                            OPLShoulder = OPLShoulder - difference
+                            OPRHand = OPRHand - difference
+                            OPLHand = OPLHand - difference
 
                             OPRTDs.Add(OPRTD)   'add each other bone of the other players to a list
                             OPRIDs.Add(OPRID)
@@ -794,7 +506,17 @@ Public Class Form1
                             OPHipss.Add(OPHips)
                             OPRFoots.Add(OPRFoot)
                             OPLFoots.Add(OPLFoot)
-
+                            OPLUpperLegs.Add(OPLUL)
+                            OPLLowerLegs.Add(OPLLL)
+                            OPRUpperLegs.Add(OPRUL)
+                            OPRLowerLegs.Add(OPRLL)
+                            OPLLowerArms.Add(OPLLA)
+                            OPRLowerArms.Add(OPRLA)
+                            OPChests.Add(OPChest)
+                            OPRShoulders.Add(OPRShoulder)
+                            OPLShoulders.Add(OPLShoulder)
+                            OPRHands.Add(OPRHand)
+                            OPLHands.Add(OPLHand)
                         Next
 
                         'Center Model
@@ -813,6 +535,10 @@ Public Class Form1
                         LLL = LLL - difference
                         RFoot = RFoot - difference
                         LFoot = LFoot - difference
+                        RID = RID - difference
+                        LID = LID - difference
+                        RTD = RTD - difference
+                        LTD = LTD - difference
 
                     End If
                 Else
@@ -979,6 +705,13 @@ Public Class Form1
                         NodeOutputs(i)(i2) = True
                     End If
                 Next
+                If SelfTouch = True Then 'If self touch is enabled
+                    If V3Distance(NodeFinalPos(i)(i2), RID) <= NodeActivationDistance(i)(i2) Then
+                        NodeOutputs(i)(i2) = True
+                    ElseIf V3Distance(NodeFinalPos(i)(i2), LID) <= NodeActivationDistance(i)(i2) Then
+                        NodeOutputs(i)(i2) = True
+                    End If
+                End If
             Next
         Next
 
@@ -1023,6 +756,42 @@ Public Class Form1
         End If
         GC.Collect() 'House Keeping
     End Sub
+
+    'Parse
+    Function Parser()
+        Dim resultvector As Vector3
+        Dim chunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Arm (elbow) from string
+        Dim Pieces As String() = chunk.Split(",") 'Split it apart
+        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
+            Pieces(0) = Pieces(0).Replace(".", ",")
+            Pieces(1) = Pieces(1).Replace(".", ",")
+            Pieces(2) = Pieces(2).Replace(".", ",")
+        End If
+        resultvector.X = Pieces(0) / 10 'Right Lower Arm (elbow) pieces to the vector3
+        resultvector.Y = Pieces(1) / 10
+        resultvector.Z = Pieces(2) / 10
+        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
+        Return resultvector
+    End Function
+
+    'Rotation Parse
+    Function RParser()
+        Dim resultq As Quaternion
+        Dim chunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
+        Dim pieces As String() = chunk.Split(",") 'Split it apart
+        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
+            pieces(0) = pieces(0).Replace(".", ",")
+            pieces(1) = pieces(1).Replace(".", ",")
+            pieces(2) = pieces(2).Replace(".", ",")
+            pieces(3) = pieces(3).Replace(".", ",")
+        End If
+        resultq.X = pieces(0) 'Head Rotation pieces to the vector3
+        resultq.Y = pieces(1)
+        resultq.Z = pieces(2)
+        resultq.W = pieces(3)
+        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
+        Return resultq
+    End Function
 
     '3D Distance math
     Function V3Distance(ByVal V1 As Vector3, ByVal V2 As Vector3)
@@ -1183,6 +952,53 @@ Public Class Form1
             GL.Vertex3(OPLTDs(i))
             GL.Vertex3(OPLIDs(i))
             GL.End() 'Finish the begin mode with "end"
+
+            GL.Begin(BeginMode.Lines)
+            GL.LineWidth(3)
+            GL.Color3(Color.White)
+            GL.Vertex3(OPHeads(i))
+            GL.Vertex3(OPChests(i))
+
+            GL.Vertex3(OPChests(i))
+            GL.Vertex3(OPHipss(i))
+
+            GL.Vertex3(OPChests(i))
+            GL.Vertex3(OPRShoulders(i))
+
+            GL.Vertex3(OPChests(i))
+            GL.Vertex3(OPLShoulders(i))
+
+            GL.Vertex3(OPRShoulders(i))
+            GL.Vertex3(OPRLowerArms(i))
+
+            GL.Vertex3(OPRLowerArms(i))
+            GL.Vertex3(OPRHands(i))
+
+            GL.Vertex3(OPLShoulders(i))
+            GL.Vertex3(OPLLowerArms(i))
+
+            GL.Vertex3(OPLLowerArms(i))
+            GL.Vertex3(OPLHands(i))
+
+            GL.Vertex3(OPHipss(i))
+            GL.Vertex3(OPRUpperLegs(i))
+
+            GL.Vertex3(OPRUpperLegs(i))
+            GL.Vertex3(OPRLowerLegs(i))
+
+            GL.Vertex3(OPRLowerLegs(i))
+            GL.Vertex3(OPRFoots(i))
+
+            GL.Vertex3(OPHipss(i))
+            GL.Vertex3(OPLUpperLegs(i))
+
+            GL.Vertex3(OPLUpperLegs(i))
+            GL.Vertex3(OPLLowerLegs(i))
+
+            GL.Vertex3(OPLLowerLegs(i))
+            GL.Vertex3(OPLFoots(i))
+
+            GL.End()
         Next
 
         'Draw Nodes
@@ -1722,6 +1538,19 @@ Public Class Form1
             If MessageBox.Show("Save Settings?", "Save", MessageBoxButtons.YesNo) = DialogResult.Yes Then   'Prompt for file save
                 SFDSettings.ShowDialog()    'If yes
             End If
+        End If
+    End Sub
+
+    'Enable Self Touch Button
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If SelfTouch = False Then
+            SelfTouch = True
+            Button1.BackColor = Color.Green
+            Button1.ForeColor = Color.White
+        Else
+            SelfTouch = False
+            Button1.BackColor = Color.LightGray
+            Button1.ForeColor = Color.Black
         End If
     End Sub
 
