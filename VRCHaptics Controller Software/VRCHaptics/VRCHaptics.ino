@@ -71,8 +71,8 @@ char networkPswd[50]; //Wifi password
 char deviceName[50];  //The name given to the device so it can recognize its packets
 int deviceNameLen = 0; //Another quick tool to help it recognize its own packets
 AsyncUDP udp; //Call out the UDP for use
-const int port = 2002; // Random port I pulled out of the air
-IPAddress broadcast=IPAddress(239,80,8,5); //Randon IP in the multicast range I pulled out the air too
+const int port = 42069; // Random port I pulled out of the air
+IPAddress broadcast=IPAddress(239,80,8,5); //Random IP in the multicast range I pulled out the air too
 int DeviceNameBroadcastCountup = 0; //This is a counter/timer for every now and then spitting the device name out to the UDP, so the VB.net program can see the controller and mark it green
 bool thisDevice = false; //The 'is this packet for this device?' bit
 int dataStart = 0;  //Start point in the packet for the actual outputs after the name
@@ -175,6 +175,8 @@ void setup(){   //Actual start of code, this is the setup area
   adc_power_off();  //Disable the analog to digital conversion stuff too
   
   WiFiReset();  //This is a subroutine at the end of the program, resets the wifi
+  
+  udp.listenMulticast(broadcast, port);
   
   memset(networkName, 0, sizeof(networkName));  //Clear out the network SSID, password and device name to defaults
   memset(networkPswd, 0, sizeof(networkPswd)); 
@@ -293,7 +295,7 @@ void loop(){  //Main loop of the program! Starts after the setup code above
         ledcWrite(13, 0);
         ledcWrite(14, 0);
         ledcWrite(15, 0); 
-        udp.close();       
+        //udp.close();       
         delay(5000); //Wait 5 whole seconds
         esp_deep_sleep_start(); //Put device to sleep, when it wakes up by the push button it starts at the top of setup
       }
@@ -428,110 +430,108 @@ void loop(){  //Main loop of the program! Starts after the setup code above
     }
      
 // Recieve Packet
-     if(udp.listenMulticast(broadcast, port)) { //If the network is setup (UDP connected to multicast)
-
-        udp.onPacket([](AsyncUDPPacket packet) {  //Get packet from network!
-          
-            thisDevice = false; //Start with saying this packet isn't for this device
-            if (packet.length() >= (deviceNameLen + 23)){  //However if the device's name length in characters and the rest of the standard packet match...
-              thisDevice = true; //Set it to a tentative maybe
-              for (int i = 0 ; i < deviceNameLen ; i++) { //Go through each character of the name
-                if ((char)*(packet.data()+i) != deviceName[i]){ //If it doesn't match
-                  thisDevice = false; //Then set that this packet isn't for this device
-                }
+        
+      udp.onPacket([](AsyncUDPPacket packet) {  //Get packet from network!
+        
+          thisDevice = false; //Start with saying this packet isn't for this device
+          if (packet.length() >= (deviceNameLen + 23)){  //However if the device's name length in characters and the rest of the standard packet match...
+            thisDevice = true; //Set it to a tentative maybe
+            for (int i = 0 ; i < deviceNameLen ; i++) { //Go through each character of the name
+              if ((char)*(packet.data()+i) != deviceName[i]){ //If it doesn't match
+                thisDevice = false; //Then set that this packet isn't for this device
               }
             }
-                        
-            if (thisDevice == true){  //If we've determined that this packet is for this device then...
+          }
+                      
+          if (thisDevice == true){  //If we've determined that this packet is for this device then...
 
-              digitalWrite(LED_PIN, ledState);  //Flip the LED output
-              ledState = (ledState + 1) % 2; // Flip the LED state
-              
-              dataStart = 0; //Clear out data start position
-              dataIndex = 0; //Clear out data index position
-              for (int i = 0 ; i < packet.length() ; i++){  //For every byte of the packet
-                if ((char)*(packet.data()+i) == '&'){ //If we find the character '&' then
-                  dataStart = i + 1;  //Set this as the data starting position
-                  break;  //Exit this loop that looks for the '&'
-                }
-                               
+            digitalWrite(LED_PIN, ledState);  //Flip the LED output
+            ledState = (ledState + 1) % 2; // Flip the LED state
+            
+            dataStart = 0; //Clear out data start position
+            dataIndex = 0; //Clear out data index position
+            for (int i = 0 ; i < packet.length() ; i++){  //For every byte of the packet
+              if ((char)*(packet.data()+i) == '&'){ //If we find the character '&' then
+                dataStart = i + 1;  //Set this as the data starting position
+                break;  //Exit this loop that looks for the '&'
               }
-              //Serial.println(dataStart);  //Debug
-              if (packet.data()+dataStart != 0){ //So if the first byte doesn't equal a hard zero, add a time value to the timer so this output will begin buzzing!
-                Output01Time = 10;  //Adding essentially 100ms (0.1 seconds)
-                Output01Power = (int)*(packet.data()+dataStart);  //This converts the byte to an intensity (0-255 where 0 is off, 255 is full power)
-              }  
-              if (packet.data()+dataStart+1 != 0){  //Repeat for the rest of the bytes of each output
-                Output02Time = 10;
-                Output02Power = (int)*(packet.data()+dataStart+1);
-              }
-              if (packet.data()+dataStart+2 != 0){
-                Output03Time = 10;
-                Output03Power = (int)*(packet.data()+dataStart+2);
-              }
-              if (packet.data()+dataStart+3 != 0){
-                Output04Time = 10;
-                Output04Power = (int)*(packet.data()+dataStart+3);
-              }
-              if (packet.data()+dataStart+4 != 0){
-                Output05Time = 10;
-                Output05Power = (int)*(packet.data()+dataStart+4);
-              }
-              if (packet.data()+dataStart+5 != 0){
-                Output06Time = 10;
-                Output06Power = (int)*(packet.data()+dataStart+5);
-              }
-              if (packet.data()+dataStart+6 != 0){
-                Output07Time = 10;
-                Output07Power = (int)*(packet.data()+dataStart+6);
-              }
-              if (packet.data()+dataStart+7 != 0){
-                Output08Time = 10;
-                Output08Power = (int)*(packet.data()+dataStart+7);
-              }
-              if (packet.data()+dataStart+8 != 0){
-                Output09Time = 10;
-                Output09Power = (int)*(packet.data()+dataStart+8);
-              }
-              if (packet.data()+dataStart+9 != 0){
-                Output10Time = 10;
-                Output10Power = (int)*(packet.data()+dataStart+9);
-              }
-              if (packet.data()+dataStart+10 != 0){
-                Output11Time = 10;
-                Output11Power = (int)*(packet.data()+dataStart+10);
-              }
-              if (packet.data()+dataStart+11 != 0){
-                Output12Time = 10;
-                Output12Power = (int)*(packet.data()+dataStart+11);
-              }
-              if (packet.data()+dataStart+12 != 0){
-                Output13Time = 10;
-                Output13Power = (int)*(packet.data()+dataStart+12);
-              }
-              if (packet.data()+dataStart+13 != 0){
-                Output14Time = 10;
-                Output14Power = (int)*(packet.data()+dataStart+13);
-              }
-              if (packet.data()+dataStart+14 != 0){
-                Output15Time = 10;
-                Output15Power = (int)*(packet.data()+dataStart+14);
-              }
-              if (packet.data()+dataStart+15 != 0){
-                Output16Time = 10;
-                Output16Power = (int)*(packet.data()+dataStart+15);
-              }       
-            }         
-        });
-        DeviceNameBroadcastCountup = DeviceNameBroadcastCountup + 1;  //Add time to timer for spitting name out for VB.net program to find
-        if (DeviceNameBroadcastCountup > 100){ //Send Device name via multicast
-          DeviceNameBroadcastCountup = 0; //Reset timer first
-          udp.print(deviceName);  //Then spit device name out to network
-          udp.broadcast(deviceName);
-          digitalWrite(LED_PIN, ledState);  //Flip the LED output
-          ledState = (ledState + 1) % 2; // Flip the LED state
-        }
-    }  
+                             
+            }
+            //Serial.println(dataStart);  //Debug
+            if (packet.data()+dataStart != 0){ //So if the first byte doesn't equal a hard zero, add a time value to the timer so this output will begin buzzing!
+              Output01Time = 10;  //Adding essentially 100ms (0.1 seconds)
+              Output01Power = (int)*(packet.data()+dataStart);  //This converts the byte to an intensity (0-255 where 0 is off, 255 is full power)
+            }  
+            if (packet.data()+dataStart+1 != 0){  //Repeat for the rest of the bytes of each output
+              Output02Time = 10;
+              Output02Power = (int)*(packet.data()+dataStart+1);
+            }
+            if (packet.data()+dataStart+2 != 0){
+              Output03Time = 10;
+              Output03Power = (int)*(packet.data()+dataStart+2);
+            }
+            if (packet.data()+dataStart+3 != 0){
+              Output04Time = 10;
+              Output04Power = (int)*(packet.data()+dataStart+3);
+            }
+            if (packet.data()+dataStart+4 != 0){
+              Output05Time = 10;
+              Output05Power = (int)*(packet.data()+dataStart+4);
+            }
+            if (packet.data()+dataStart+5 != 0){
+              Output06Time = 10;
+              Output06Power = (int)*(packet.data()+dataStart+5);
+            }
+            if (packet.data()+dataStart+6 != 0){
+              Output07Time = 10;
+              Output07Power = (int)*(packet.data()+dataStart+6);
+            }
+            if (packet.data()+dataStart+7 != 0){
+              Output08Time = 10;
+              Output08Power = (int)*(packet.data()+dataStart+7);
+            }
+            if (packet.data()+dataStart+8 != 0){
+              Output09Time = 10;
+              Output09Power = (int)*(packet.data()+dataStart+8);
+            }
+            if (packet.data()+dataStart+9 != 0){
+              Output10Time = 10;
+              Output10Power = (int)*(packet.data()+dataStart+9);
+            }
+            if (packet.data()+dataStart+10 != 0){
+              Output11Time = 10;
+              Output11Power = (int)*(packet.data()+dataStart+10);
+            }
+            if (packet.data()+dataStart+11 != 0){
+              Output12Time = 10;
+              Output12Power = (int)*(packet.data()+dataStart+11);
+            }
+            if (packet.data()+dataStart+12 != 0){
+              Output13Time = 10;
+              Output13Power = (int)*(packet.data()+dataStart+12);
+            }
+            if (packet.data()+dataStart+13 != 0){
+              Output14Time = 10;
+              Output14Power = (int)*(packet.data()+dataStart+13);
+            }
+            if (packet.data()+dataStart+14 != 0){
+              Output15Time = 10;
+              Output15Power = (int)*(packet.data()+dataStart+14);
+            }
+            if (packet.data()+dataStart+15 != 0){
+              Output16Time = 10;
+              Output16Power = (int)*(packet.data()+dataStart+15);
+            }       
+          }       
+      });
+      DeviceNameBroadcastCountup = DeviceNameBroadcastCountup + 1;  //Add time to timer for spitting name out for VB.net program to find
+      if (DeviceNameBroadcastCountup > 100){ //Send Device name via multicast
+        DeviceNameBroadcastCountup = 0; //Reset timer first
+        udp.print(deviceName);  //Then spit device name out to network
+        udp.broadcast(deviceName);
+        digitalWrite(LED_PIN, ledState);  //Flip the LED output
+        ledState = (ledState + 1) % 2; // Flip the LED state
+      }
   } 
 }
 

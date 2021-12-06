@@ -87,11 +87,11 @@ Public Class Form1
     Dim Avatarnormals As New List(Of Vector3)   'Normal (face direction) of the mesh faces of the avatar
     Dim AvatarRotation As Vector3   'Rotation of the avatar
 
-    Dim MulticastPort As Integer = 2002 'Multicast port for UDP, matches controller's port
+    Dim MulticastPort As Integer = 42069 'Multicast port for UDP, matches controller's port
     Dim Multicaster As New System.Net.Sockets.UdpClient(MulticastPort) 'Call out the UDP for use
     Dim outputtestindex As Integer = 0  'For testing the outputs of the controller
     Public outputtest As Boolean = False    'Output test is on / off
-    Dim outputtestdelay As Integer = 0  'Delay for each output during test
+    Dim outputtestdelay As Integer = 0  'Delay for each output during test.1
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
 
@@ -168,10 +168,11 @@ Public Class Form1
             End If
         Next
 
-        Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"))    'Set multicast IP address, matches on controller
+        'Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"), 10)    'Set multicast IP address, matches on controller
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
         Multicaster.Client.ReceiveTimeout = 100 'Timeout
-        Multicaster.Client.Ttl = 10
+        Multicaster.MulticastLoopback = False
+        Multicaster.DontFragment = True
         Multicaster.EnableBroadcast = True
 
         If VRCopen = True Then  'If VRC is open
