@@ -1,91 +1,30 @@
-﻿'To Do:
-'Fix 3D avatar so it doesn't suck
-'VRC assisted node placement
-'Whitelist
-'Different Avatar Offsets
-'
-
-Imports OpenTK  '3D display imports
-Imports OpenTK.Graphics
-Imports OpenTK.Graphics.OpenGL
-Imports System.ComponentModel 'Other misc imports
+﻿Imports System.ComponentModel 'Other misc imports
 Imports System.Environment
 Imports System.Diagnostics
+Imports System.Net.Sockets
 
 Public Class Form1
-    Dim GLLoaded As Boolean = False 'wait til 3D is loaded before doing anything to it
-    Dim filez As String = "" 'Files in directory
-    Dim dir As String = "Low\VRChat\vrchat\" 'temp fix later
-    Dim AppDatafolder As String = "C:\Program Files (x86)\Steam\steamapps\common\VRChat\MelonLoader\Logs" 'Get the local data directory
-    Dim logfound As Boolean = False 'Proper Log file found
-    Dim reader As IO.StreamReader 'reader to read the file
-    Dim Readz As String = "" 'the current line from the log, could or could not be a haptic event
-    Dim Hapticsline As Boolean = False 'In case we have multiple lines come in at once, try a few out first
-    Dim debugcounter As Integer = 0 'Counter for debug to make sure udon didn't break
-    Dim head, hips, chest, RShoulder, LShoulder, RLA, LLA, RHand, LHand, RUL, LUL, RLL, LLL, RFoot, LFoot, RID, LID, RTD, LTD As Vector3 'Local Player
-    Dim headR, RHandR, LHandR, ChestR, HipsR As Quaternion    'Rotations from VRC
-    Dim RshoulderR, LShoulderR, RLAR, LLAR, RULR, LULR, RLLR, LLLR As Vector3 ' math'd rotations from bone positions
-    Dim OPRTD, OPRID, OPLTD, OPLID, OPHead, OPHips, OPRFoot, OPLFoot, OPChest, OPLUL, OPRUL, OPLLL, OPRLL, OPLUA, OPRUA, OPLLA, OPRLA, OPRShoulder, OPLShoulder, OPRHand, OPLHand As Vector3 'Other Player from debug
-    Dim HeadRM, RHandRM, LHandRM, ChestRM, HipsRM, RShoulderM, RLAM, LShoulderM, LLAM, RULM, RLLM, LULM, LLLM As Matrix4 'Rotation matrixes
-    Dim HeadVector, RHandV1, RHandV2, LHandV1, LHandV2 As Vector3 'Indicators on the 3D
-    Dim CurrentRotation As Matrix4 = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-    Dim Enable3D As Boolean = True 'Enable or disable active 3D updates
-    Dim OtherPlayer As String   'Name of other player as debug gives it
-    Dim OtherPlayers As New List(Of String) 'List of other player names
-    Dim OPRTDs As New List(Of Vector3)  'Lists of other player components
-    Dim OPRIDs As New List(Of Vector3)
-    Dim OPLTDs As New List(Of Vector3)
-    Dim OPLIDs As New List(Of Vector3)
-    Dim OPHeads As New List(Of Vector3)
-    Dim OPHipss As New List(Of Vector3)
-    Dim OPRFoots As New List(Of Vector3)
-    Dim OPLFoots As New List(Of Vector3)
-    Dim OPLUpperLegs As New List(Of Vector3)
-    Dim OPLLowerLegs As New List(Of Vector3)
-    Dim OPRUpperLegs As New List(Of Vector3)
-    Dim OPRLowerLegs As New List(Of Vector3)
-    Dim OPLUpperArms As New List(Of Vector3)
-    Dim OPLLowerArms As New List(Of Vector3)
-    Dim OPRUpperArms As New List(Of Vector3)
-    Dim OPRLowerArms As New List(Of Vector3)
-    Dim OPChests As New List(Of Vector3)
-    Dim OPRShoulders As New List(Of Vector3)
-    Dim OPLShoulders As New List(Of Vector3)
-    Dim OPRHands As New List(Of Vector3)
-    Dim OPLHands As New List(Of Vector3)
-    Dim OPTime As New List(Of Integer) 'Duration of time since we've seen that player in milliseconds
-    Dim lower As Single = 0 'bottom point of the avatar
 
-    Dim mousecontrol As Boolean = False 'Mouse being used on GLcontrol
-    Dim mousestartrotate As Point   'Used for rotation math
-    Dim mousestartposition As Point 'Used for camera movement
-    Dim mousecontroltype As Integer 'Button Pressed
-    Dim rotateX, rotateY, positionX, positionY As Single    'Used for rotation math
-    Dim zpos As Single = 2  'Zoom position
-    Dim ypos As Single = -0.2 'Height of camera
-    Dim slowrotate As Boolean = True    'Slow spin of the model
-    Dim slowrotateY As Single = 0   'Slow spin rotation
+    Dim OSCR As New UdpClient(9001) 'OSC recieves on UDP, at port 9001 (as stated from VRC)
+    Dim OSCep As System.Net.IPEndPoint 'Just defining somewhere to look for OSC
+    Dim OSCP As String = "" 'Parameter name
+    Dim OSCvalue As String = "" 'Place to save string for displaying
+    Dim OSCPSaved As String = "" 'Parameter name if its unique
+    Dim OSCValueSaved As String = "" 'Value for saving to
+    Dim AppDatafolder As String = ""
+    Dim avatarfiles As New List(Of String)
+
     Public NodeDeviceNames As New List(Of String)    'Name of Device for reference like 'head' or 'right arm' kinda thing
     Public NodeOutputs As New List(Of List(Of Boolean)) 'Output of device
     Public NodeDeviceConnection As New List(Of Integer) 'Connection timeout
-    Public NodeRootBone As New List(Of List(Of Integer))   'Bone Root Node is attached to (see debug packet)
-    Public NodeBoneOffset As New List(Of List(Of Vector3))   'Offset from bone axis
-    Public NodeFinalPos As New List(Of List(Of Vector3)) 'Final math'd position of the node
-    Public NodeActivationDistance As New List(Of List(Of Single)) 'Distance anyone else needs to be to activate the node
     Public NodeForce As New List(Of List(Of Integer)) 'The intensity of buzzing for each node
+    Public NodeNames As New List(Of List(Of String)) 'The parameter name coming from OSC
     Public DeviceIndex As Integer   'for sharing to the other dialog for device editing
     Public DeviceMethod As Integer = 0  'for sharing to the other dialog for device editing
     Dim DGVupdating As Boolean = False  'DGVNode ignores updates if DGVDevice is changing it
-    Dim RootBones As List(Of String) = New List(Of String) From {"Unassigned", "Head", "Hips", "Chest", "Right Upper Arm", "Left Upper Arm", "Right Lower Arm", "Left Lower Arm", "Right Hand", "Left Hand", "Right Upper Leg", "Left Upper Leg", "Right Lower Leg", "Left Lower Leg"}  'Names of root bones
     Dim sendbytezzz As Byte()
-    Dim Avatarlocation As String    'Avatar STL file location
-    Dim SelfTouch As Boolean = False
-
-    Dim Avatarpoints As New List(Of Vector3)    'Avatar mesh face points
-    Dim Avatarcolors As Drawing.Color   'Color of avatar
-    Dim AvatarLoaded As Boolean = False 'Is the avatar loaded? bit
-    Dim Avatarnormals As New List(Of Vector3)   'Normal (face direction) of the mesh faces of the avatar
-    Dim AvatarRotation As Vector3   'Rotation of the avatar
+    Dim testednodeD As Integer 'Testing device number
+    Dim testednodeN As Integer 'Testing node number
 
     Dim MulticastPort As Integer = 42069 'Multicast port for UDP, matches controller's port
     Dim Multicaster As New System.Net.Sockets.UdpClient(MulticastPort) 'Call out the UDP for use
@@ -95,78 +34,44 @@ Public Class Form1
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
 
-#Region "Debug Packet"
-    'Packet for 1 player looks like "Haptics:V1(Bone data)(rotation data)"
-    'Packet for 2+ players look like "Haptics:V1(Bone data)(rotation data)^^/^(Other player bone data)Otherplayername^/^(Other player bone data)Otherplayername"
-
-    'Example
-
-    '"Just Me - Haptics:V1(29.3, 45.8, -96.6)(29.7, 42.6, -95.3)(29.7, 43.2, -95.4)(29.9, 44.5, -96.7)(28.6, 44.6, -96.1)(31.3, 42.5, -96.7)(27.2, 42.6, -95.5)(32.1, 40.5, -95.4)(27.7, 40.6, -94.0)(30.8, 40.3, -96.0)(28.4, 40.3, -95.2)(31.0, 35.9, -94.4)(29.1, 35.7, -94.4)(31.5, 31.6, -95.4)(27.9, 31.6, -95.7)(0.2405493,0.06394769,0.01590426,-0.9683977)(0.7164925,0.2387804,0.6534851,0.05079648)(0.3226297,-0.2587059,-0.9103048,0.01809094)(0.2255801,-0.215687,-0.023443,-0.9497596)(0.9821816,0.003167251,-0.1876046,0.01067693)"
-    '"One more - Haptics:V1(80.3, 37.7, -334.1)(80.1, 34.3, -334.6)(80.1, 34.9, -334.6)(80.5, 36.6, -335.1)(79.2, 36.6, -334.4)(81.5, 34.7, -336.4)(77.6, 34.7, -334.5)(82.0, 32.3, -336.4)(77.7, 32.3, -334.2)(81.1, 32.0, -335.5)(78.8, 32.0, -334.2)(81.0, 27.7, -333.6)(80.3, 27.8, -332.9)(81.3, 23.5, -335.2)(79.0, 23.6, -333.8)(0.2701674,0.239546,-0.06961434,0.9299361)(-0.7548343,-0.001274519,-0.6484137,0.09891184)(-0.2426835,0.04793017,0.959358,0.135793)(0.04194229,0.2654545,0.006020525,0.963192)(-0.9635401,-0.003260065,0.2675398,0.001444333)^^/^(81.4, 29.9, -324.1)(81.4, 29.7, -324.4)(83.0, 29.9, -322.5)(83.1, 29.7, -322.7)(80.5, 32.7, -321.3)(80.2, 28.9, -321.3)(79.3, 22.3, -322.2)(81.3, 22.4, -321.3)Moogle1"
-    '"Two - Haptics:V1(76.9, 37.6, -323.9)(77.0, 34.2, -323.2)(77.0, 34.9, -323.2)(76.4, 36.6, -322.9)(77.9, 36.5, -323.3)(75.2, 34.7, -321.8)(79.5, 34.7, -322.6)(74.9, 32.2, -321.8)(79.4, 32.3, -322.7)(75.9, 32.0, -322.5)(78.4, 31.9, -323.3)(76.1, 27.8, -324.6)(77.2, 27.8, -325.0)(75.7, 23.6, -323.1)(78.4, 23.6, -323.7)(-0.03748857,0.936684,-0.3316957,-0.1058107)(-0.7507744,0.0998488,0.6527701,-0.01611204)(0.9126387,0.1561787,0.3777094,-0.005902914)(0.005238595,0.9890235,-0.07425836,-0.1276343)(0.1449823,0.004352957,0.9894212,0.002602346)^^/^(66.6, 30.4, -332.5)(66.8, 29.7, -333.0)(67.6, 30.3, -329.0)(68.0, 29.7, -328.7)(65.5, 36.4, -330.2)(66.1, 32.0, -330.4)(65.9, 23.0, -331.8)(67.0, 23.0, -328.8)Snoozeto^/^(80.5, 31.6, -329.4)(80.6, 31.4, -328.8)(78.9, 31.1, -330.5)(78.5, 30.6, -330.3)(81.5, 33.4, -332.4)(81.2, 29.5, -332.0)(81.8, 22.4, -331.6)(80.4, 22.4, -332.0)Moogle1"
-
-    '===Local Player=== (bone root index too)
-    '1. Head
-    '2. Hips
-    '3. Chest
-    '4. Right Shoulder
-    '5. Left Shoulder
-    '6. Right Lower Arm (elbow)
-    '7. Left Lower Arm (elbow)
-    '8. Right Hand
-    '9. Left Hand
-    '10 Right Upper Leg
-    '11 Left Upper Leg
-    '12 Right Lower Leg (knee)
-    '13 Left Lower Leg (knee)
-    'Right Foot
-    'Left Foot
-    'Head Rotation
-    'Right Hand Rotation
-    'Left Hand Rotation
-    'Chest Rotation
-    'Hips Rotation
-
-    '===Other Player===
-    'Right Thumb Distal
-    'Right Index Distal
-    'Left Thumb Distal
-    'Left Index Distal
-    'Head
-    'Hips
-    'Right Foot
-    'Left Foot
-
-#End Region
-
 #Region "Settings File"
     'Version number (int)
     'Count of Devices (int)
     'Device Name 1 (string)
     'Device Outputs 1 (int)
-    'Node Root Bone 1 (int)
-    'Node Root Bone n
-    'Node Root Bone Offset 1 (vector3)
-    'Node Root Bone Offset n
-    'Node Activation Distance 1 (Single)
-    'Node Activation Distance n
-    'Node Force 1 (int)
-    'Node Force n
-    'Device Name n
-    '...
-    'Whitelist count
-    'Whitelist Name 1
-    'WhiteList Name n
+    'Node Names (string) * device outputs
+    'Node Forces (int) *device outputs
 #End Region
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load    'This event for the form load
 
-        Dim p() As Process = Process.GetProcesses() 'Even though this program doesn't interface directly with VRChat, if the debug reader opens before VRC, then VRC may not create a debug file.
-        For i = 0 To p.Length - 1   'Every process happening...
-            If p(i).ProcessName = "VRChat" Then 'If one of them is VRChat...
-                VRCopen = True  'Set VRCopen
+        'Dim p() As Process = Process.GetProcesses() 'Even though this program doesn't interface directly with VRChat, if the debug reader opens before VRC, then VRC may not create a debug file.
+        'For i = 0 To p.Length - 1   'Every process happening...
+        '    If p(i).ProcessName = "VRChat" Then 'If one of them is VRChat...
+        '        VRCopen = True  'Set VRCopen
+        '    End If
+        'Next
+        Try
+            If My.Settings.DefFolder = "" Then
+                AppDatafolder = GetFolderPath(SpecialFolder.LocalApplicationData) & "Low\VRChat\VRChat\OSC\"
+            Else
+                AppDatafolder = My.Settings.DefFolder
             End If
-        Next
+            ReadinJSONs()
+        Catch ex As Exception
+            MsgBox("Error in finding avatar definition files, please define folder under 'File'")
+        End Try
+
+
+
+
+        RichTextBox1.Text = "" 'clear history
+
+        'OSC Reciever 
+        OSCR.Client.ReceiveTimeout = 10 'How long to wait before moving on
+        OSCR.Client.Blocking = False 'Don't allow it to block processing
+        OSCep = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 0) 'Defining endpoint, used in OSC Comms
+        MainTimer.Interval = 50 'Main timer should be about 50ms, so not to overload network i guess
 
         'Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"), 10)    'Set multicast IP address, matches on controller
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
@@ -175,167 +80,15 @@ Public Class Form1
         Multicaster.DontFragment = True
         Multicaster.EnableBroadcast = True
 
-        If VRCopen = True Then  'If VRC is open
-            Try
-                filez = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
-                If filez.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
-                    Dim fs As New IO.FileStream(filez, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
-                    reader = New IO.StreamReader(fs) 'Make it a reader
-                    reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
-                    LblLogStatus.Text = "Log file found, reading..."
-                    LblLogStatus.ForeColor = Color.Green
-                    MainTimer.Enabled = True    'Set main timer to begin running
-                    logfound = True 'Set log file found
-                Else
-                    LblLogStatus.Text = "Another TXT file was found?" 'Should only be the logs in the directory
-                    LblLogStatus.ForeColor = Color.Red
-                End If
-
-            Catch ex As Exception   'Something went wrong...
-                LblLogStatus.Text = "Either no log yet or wrong directory, Retry every 5 seconds..."
-                LblLogStatus.ForeColor = Color.Orange
-            End Try
-        Else
-            LblLogStatus.Text = "Waiting for VRChat to open..."
-        End If
-
-        'Enable This so it can see retry if the first attempt failed or see if a new file was created.
-        RetryTimer.Enabled = True
-        MainTimer.Enabled = True
-
         'Try to load last settings
         If IO.File.Exists(My.Settings.SettingsLoc) = True Then
             OFDSettings.FileName = My.Settings.SettingsLoc  'Grab settings file from program memory location
             SettingsFileLoad() 'Load it!
         End If
 
+        OSCTimer.Enabled = True 'Enable the OSC read in timer
+        MainTimer.Enabled = True 'Enable that main timer
 
-        'Set initial values for model, taken from my avatar =3
-        head = New Vector3(-37.1, 49.4, -155.9) / 10
-        hips = New Vector3(-37.1, 46.0, -155.9) / 10
-        chest = New Vector3(-37.2, 46.6, -155.8) / 10
-        RShoulder = New Vector3(-37.7, 48.2, -156.6) / 10
-        LShoulder = New Vector3(-37.7, 48.2, -155.1) / 10
-        RLA = New Vector3(-38.0, 46.2, -158.0) / 10
-        LLA = New Vector3(-38.2, 46.3, -153.6) / 10
-        RHand = New Vector3(-37.4, 43.8, -158.2) / 10
-        LHand = New Vector3(-37.5, 43.9, -153.5) / 10
-        RUL = New Vector3(-37.6, 43.7, -157.1) / 10
-        LUL = New Vector3(-37.2, 43.7, -154.5) / 10
-        RLL = New Vector3(-36.3, 39.2, -156.5) / 10
-        LLL = New Vector3(-35.7, 39.3, -155.0) / 10
-        RFoot = New Vector3(-37.8, 35.0, -157.3) / 10
-        LFoot = New Vector3(-36.8, 35.1, -153.9) / 10
-        headR = New Quaternion(0.09596183, 0.7285335, -0.1043496, 0.6701803)
-        RHandR = New Quaternion(-0.9803324, -0.04580933, -0.1728171, 0.08357219)
-        LHandR = New Quaternion(0.2495387, 0.1442466, 0.957502, 0.0106489)
-        ChestR = New Quaternion(-0.03282366, 0.7132464, 0.03047819, 0.6994808)
-        HipsR = New Quaternion(-0.6524559, -0.001264208, 0.757825, 0.00106812)
-
-        'Center Model
-        Dim difference As Vector3 = hips 'Grab where the center should be
-        hips = hips - difference    'Remove that offset from the rest of the points
-        head = head - difference
-        chest = chest - difference
-        RShoulder = RShoulder - difference
-        LShoulder = LShoulder - difference
-        RLA = RLA - difference
-        LLA = LLA - difference
-        RHand = RHand - difference
-        LHand = LHand - difference
-        RUL = RUL - difference
-        LUL = LUL - difference
-        RLL = RLL - difference
-        LLL = LLL - difference
-        RFoot = RFoot - difference
-        LFoot = LFoot - difference
-        OPRTD = OPRTD - difference
-        OPRID = OPRID - difference
-        OPLTD = OPLTD - difference
-        OPLID = OPLID - difference
-        OPHead = OPHead - difference
-        OPHips = OPHips - difference
-        OPRFoot = OPRFoot - difference
-        OPLFoot = OPLFoot - difference
-
-        If RFoot.Y < LFoot.Y Then   'Get lowest point on avatar for 3d orientation
-            lower = RFoot.Y
-        Else
-            lower = LFoot.Y
-        End If
-
-    End Sub
-
-    Private Sub RetryTimer_Tick(sender As Object, e As EventArgs) Handles RetryTimer.Tick   'This runs to find / handle VRChat closing and reopening
-
-        'This part is the same as abover in the form load event
-        Dim p() As Process = Process.GetProcesses() 'Even though this program doesn't interface directly with VRChat, if the debug reader opens before VRC, then VRC may not create a debug file.
-        VRCopen = False
-        For i = 0 To p.Length - 1
-            If p(i).ProcessName = "VRChat" Then
-                VRCopen = True
-            End If
-        Next
-        If VRCopen = True Then
-
-            If logfound = False Then    'If the log file wasn't found the first time
-                Try
-                    filez = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
-                    If filez.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
-                        Dim fs As New IO.FileStream(filez, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
-                        reader = New IO.StreamReader(fs) 'Make it a reader
-                        reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
-                        LblLogStatus.Text = "Log file found, reading..."
-                        LblLogStatus.ForeColor = Color.Green
-                        MainTimer.Enabled = True
-                        logfound = True
-                    Else
-                        LblLogStatus.Text = "Another TXT file was found?"
-                        LblLogStatus.ForeColor = Color.Red
-                    End If
-
-                Catch ex As Exception
-                    LblLogStatus.Text = "Either no log yet or wrong directory, Retry every 5 seconds..."
-                    LblLogStatus.ForeColor = Color.Orange
-                End Try
-
-            Else    'If the log file was found and is running, just gotta check if a new one was created. Used for when closing and reopening VRC.
-
-                Try
-                    Dim latestfile As String = IO.Directory.GetFiles(AppDatafolder, "*.log").OrderByDescending(Function(f) New IO.FileInfo(f).LastWriteTime).First() 'Get the latest LOG file
-                    If latestfile.Contains("MelonLoader") Then 'MelonLoader is in the default log file name
-                        If latestfile <> filez Then
-                            Dim fs As New IO.FileStream(latestfile, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite) 'Setup to be read from while VRC still writing to it
-                            reader = New IO.StreamReader(fs) 'Make it a reader
-                            reader.ReadToEnd() 'Jump to end since we don't want to hear about everything til now
-                            LblLogStatus.Text = "New Log file found, reading..."
-                            LblLogStatus.ForeColor = Color.Green
-                        End If
-                    End If
-
-                Catch ex As Exception
-                    LblLogStatus.Text = "New file was found but doesn't work."
-                    LblLogStatus.ForeColor = Color.Red
-                End Try
-
-
-            End If
-        Else
-            LblLogStatus.Text = "Waiting for VRChat to open..."
-            LblLogStatus.ForeColor = Color.Black
-        End If
-
-    End Sub
-
-    Private Sub LoadAvatarToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LoadAvatarToolStripMenuItem.Click
-        OFDAvatar.ShowDialog()  'Open Avatar File Dialog
-    End Sub
-
-    Private Sub OFDAvatar_FileOk(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles OFDAvatar.FileOk
-        Avatarpoints.Clear()    'Clear avatar anything in points
-        Avatarlocation = OFDAvatar.FileName 'Location of file
-        fileimportSTL() 'Import it
-        GlControl1.Invalidate() 'Refresh 3D
     End Sub
 
     'UDP Receive
@@ -373,362 +126,34 @@ Public Class Form1
             End If
         Next
 
-        If slowrotate = True Then   'That super sexy slow rotate of the model
-            slowrotateY = slowrotateY + 0.5 'Nice and slow, just like daddy likes it
-        End If
-
-        If VRCopen = True Then
-            Readz = reader.ReadLine() 'get line from file stream
-        End If
-
-        Try 'Call this the Corb catcher, catches errors in the packets and just exits.
-
-            If Readz <> "" Then 'Make sure its not a blank line
-
-                If Readz.Contains("Haptics:") Then 'If its part of our haptics stuff...
-
-                    If Readz.Contains("Debug") Then 'Debug Counter, only really used in my test world, nothing to see here
-                        debugcounter = debugcounter + 1 'debug counter increase
-                    Else
-
-                        'Get local player bones
-                        head = Parser() 'Head
-                        hips = Parser() 'Hips
-                        chest = Parser() 'Chest
-                        RShoulder = Parser() 'Right Shoulder
-                        LShoulder = Parser() 'Left Shoulder
-                        RLA = Parser() 'Right Lower Arm (elbow)
-                        LLA = Parser() 'Left Lower Arm (elbow)
-                        RHand = Parser() 'Right Hand
-                        LHand = Parser() 'Left Hand
-                        RUL = Parser() 'Right Upper Leg
-                        LUL = Parser() 'Left Upper Leg
-                        RLL = Parser() 'Right Lower Leg (knee)
-                        LLL = Parser() 'Left Lower Leg (knee)
-                        RFoot = Parser() 'Right Foot
-                        LFoot = Parser() 'Left Foot
-                        RID = Parser() 'Right Index Distal
-                        LID = Parser() 'Left Index Distal
-                        RTD = Parser() 'Right Thumb Distal
-                        LTD = Parser() 'Left Thumb Distal
-
-                        headR = RParser() 'Head Rotation
-                        RHandR = RParser() 'Right Hand Rotation
-                        LHandR = RParser() 'Left Hand Rotation
-                        ChestR = RParser() 'Chest Rotation
-                        HipsR = RParser() 'Hips Rotation
-
-                        Dim difference As Vector3 = hips 'Grab where the center should be
-
-                        OtherPlayers.Clear()
-                        OPRTDs.Clear()  'Clear out other player's bones for this round
-                        OPRIDs.Clear()
-                        OPLTDs.Clear()
-                        OPLIDs.Clear()
-                        OPHeads.Clear()
-                        OPHipss.Clear()
-                        OPRFoots.Clear()
-                        OPLFoots.Clear()
-                        OPRLowerArms.Clear()
-                        OPLLowerArms.Clear()
-                        OPRUpperLegs.Clear()
-                        OPLUpperLegs.Clear()
-                        OPRLowerLegs.Clear()
-                        OPLLowerLegs.Clear()
-                        OPRHands.Clear()
-                        OPLHands.Clear()
-                        OPChests.Clear()
-                        OPRShoulders.Clear()
-                        OPLShoulders.Clear()
-
-
-                        Dim otherplayercount As Integer = (Readz.Length - Readz.Replace("^/^", String.Empty).Length) / 3 'how man other players are close enough to me?
-
-                        For i = 0 To otherplayercount - 1 'for each of them...
-                            OPHead = Parser() 'Other player's Head
-                            OPHips = Parser() 'Other player's Hips
-                            OPChest = Parser() 'Chest
-                            OPRShoulder = Parser() 'Right Shoulder
-                            OPLShoulder = Parser() 'Left Shoulder
-                            OPRLA = Parser() 'Right Lower Arm
-                            OPLLA = Parser() 'Left Lower Arm
-                            OPRHand = Parser() 'Right Hand
-                            OPLHand = Parser() 'Left Hand
-                            OPRUL = Parser() 'Right Upper Leg
-                            OPLUL = Parser() 'Left Upper Leg
-                            OPRLL = Parser() 'Right Lower Leg
-                            OPLLL = Parser() 'Left Lower Leg
-                            OPRFoot = Parser() 'Other player's Right Foot
-                            OPLFoot = Parser() 'Other player's Left Foot
-                            OPRTD = Parser() 'Other Player's Right Thumb Distal
-                            OPRID = Parser() 'Other Player's Right Index Distal
-                            OPLTD = Parser() 'Other Player's Left Thumb Distal
-                            OPLID = Parser() 'Other Player's Left Index Distal
-                            RParser() 'Throw away the other player rotations
-                            RParser()
-                            RParser()
-                            RParser()
-                            RParser()
-
-                            'Get other player Names
-                            If i + 1 = otherplayercount Then ' on the last name?
-                                OtherPlayers.Add(Readz)
-                            Else 'No there's more
-                                OtherPlayers.Add(Readz.Substring(0, Readz.IndexOf("^/^"))) 'Like this is so much string manipulation and I can't handle it man
-                                Readz = Readz.Substring(Readz.IndexOf("^/^")) 'Take the name off incase they have "(" or ")" in their name
-                            End If
-
-                            'Center other player to myself
-                            OPRTD = OPRTD - difference
-                            OPRID = OPRID - difference
-                            OPLTD = OPLTD - difference
-                            OPLID = OPLID - difference
-                            OPHead = OPHead - difference
-                            OPHips = OPHips - difference
-                            OPChest = OPChest - difference
-                            OPRFoot = OPRFoot - difference
-                            OPLFoot = OPLFoot - difference
-                            OPLUL = OPLUL - difference
-                            OPRUL = OPRUL - difference
-                            OPLLL = OPLLL - difference
-                            OPRLL = OPRLL - difference
-                            OPLLA = OPLLA - difference
-                            OPRLA = OPRLA - difference
-                            OPRShoulder = OPRShoulder - difference
-                            OPLShoulder = OPLShoulder - difference
-                            OPRHand = OPRHand - difference
-                            OPLHand = OPLHand - difference
-
-                            OPRTDs.Add(OPRTD)   'add each other bone of the other players to a list
-                            OPRIDs.Add(OPRID)
-                            OPLTDs.Add(OPLTD)
-                            OPLIDs.Add(OPLID)
-                            OPHeads.Add(OPHead)
-                            OPHipss.Add(OPHips)
-                            OPRFoots.Add(OPRFoot)
-                            OPLFoots.Add(OPLFoot)
-                            OPLUpperLegs.Add(OPLUL)
-                            OPLLowerLegs.Add(OPLLL)
-                            OPRUpperLegs.Add(OPRUL)
-                            OPRLowerLegs.Add(OPRLL)
-                            OPLLowerArms.Add(OPLLA)
-                            OPRLowerArms.Add(OPRLA)
-                            OPChests.Add(OPChest)
-                            OPRShoulders.Add(OPRShoulder)
-                            OPLShoulders.Add(OPLShoulder)
-                            OPRHands.Add(OPRHand)
-                            OPLHands.Add(OPLHand)
-                        Next
-
-                        'Center Model
-                        hips = hips - difference    'Remove that offset from the rest of the points
-                        head = head - difference
-                        chest = chest - difference
-                        RShoulder = RShoulder - difference
-                        LShoulder = LShoulder - difference
-                        RLA = RLA - difference
-                        LLA = LLA - difference
-                        RHand = RHand - difference
-                        LHand = LHand - difference
-                        RUL = RUL - difference
-                        LUL = LUL - difference
-                        RLL = RLL - difference
-                        LLL = LLL - difference
-                        RFoot = RFoot - difference
-                        LFoot = LFoot - difference
-                        RID = RID - difference
-                        LID = LID - difference
-                        RTD = RTD - difference
-                        LTD = LTD - difference
-
-                    End If
-                Else
-                    reader.ReadToEnd() 'If this wasn't a haptics, then jump to the end. If it was, there is probably more after it!
-                End If
-            End If
-
-        Catch ex As Exception
-        End Try
-
-        'MATH WHAAAAAAAAAAAAT
-        HeadRM = Matrix4.Rotate(headR) 'Head rotation math
-        RHandRM = Matrix4.Rotate(RHandR) 'Right Hand Rotation Math
-        LHandRM = Matrix4.Rotate(LHandR) 'Left Hand Rotation Math
-        ChestRM = Matrix4.Rotate(ChestR) 'Chest Rotation Math
-        HipsRM = Matrix4.Rotate(HipsR) 'Hips Rotation Math
-
-        If headR = New Quaternion(0, 0, 0, 0) Then  'Quick check to see if the Quat is empty, that way we don't lose our positon
-            HeadRM = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-        End If
-        If RHandR = New Quaternion(0, 0, 0, 0) Then 'Quick check to see if the Quat is empty, that way we don't lose our positon
-            RHandRM = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-        End If
-        If LHandR = New Quaternion(0, 0, 0, 0) Then 'Quick check to see if the Quat is empty, that way we don't lose our positon
-            LHandRM = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-        End If
-        If ChestR = New Quaternion(0, 0, 0, 0) Then 'Quick check to see if the Quat is empty, that way we don't lose our positon
-            ChestRM = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-        End If
-        If HipsR = New Quaternion(0, 0, 0, 0) Then 'Quick check to see if the Quat is empty, that way we don't lose our positon
-            HipsRM = New Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
-        End If
-
-        RShoulderM = Matrix4.LookAt(RShoulder, RLA, New Vector3(0, 1, 0)) 'Right Shoulder Rotation Math
-        RLAM = Matrix4.LookAt(RLA, RHand, New Vector3(0, 1, 0))  'Right Lower Arm Rotation Math
-        LShoulderM = Matrix4.LookAt(LShoulder, LLA, New Vector3(0, 1, 0)) 'Left Shoulder Rotation Math
-        LLAM = Matrix4.LookAt(LLA, LHand, New Vector3(0, 1, 0)) 'Left Lower Arm Rotation Math
-        RULM = Matrix4.LookAt(RUL, RLL, New Vector3(0, 1, 0)) 'Right Upper Leg Rotation Math
-        RLLM = Matrix4.LookAt(RLL, RFoot, New Vector3(0, 1, 0)) 'Right Lower Leg Rotation Math
-        LULM = Matrix4.LookAt(LUL, LLL, New Vector3(0, 1, 0)) 'Left Upper Leg Rotation Math
-        LLLM = Matrix4.LookAt(LLL, LFoot, New Vector3(0, 1, 0)) 'Left Lower Leg Rotation Math
-
-
-        'Invert all, but put them in -try- because sometimes they fault out
-        Try
-            RShoulderM.Invert()
-            RLAM.Invert()
-        Catch ex As Exception
-        End Try
-        Try
-            LShoulderM.Invert()
-            LLAM.Invert()
-        Catch ex As Exception
-        End Try
-        Try
-            RULM.Invert()
-            RLLM.Invert()
-        Catch ex As Exception
-        End Try
-        Try
-            LULM.Invert()
-            LLLM.Invert()
-        Catch ex As Exception
-        End Try
-
-        For i = 0 To NodeDeviceNames.Count - 1 'For each device
-            For i2 = 0 To NodeBoneOffset(i).Count - 1   'For each node of the device
-                NodeFinalPos(i)(i2) = Vector3.Zero  'Make the position zero to start with
-                If NodeRootBone(i)(i2) = 1 Then 'If it head
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), HeadRM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + head    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 2 Then 'If it's hips
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), HipsRM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + hips    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 3 Then 'If it's chest
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), ChestRM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + chest    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 4 Then 'If it's right shoulder
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), RShoulderM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + RShoulder    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 5 Then 'If it's left shoulder
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), LShoulderM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + LShoulder    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 6 Then 'If it's right lower arm
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), RLAM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + RLA    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 7 Then 'If it's left lower arm
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), LLAM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + LLA    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 8 Then 'If it's Right hand
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), RHandRM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + RHand    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 9 Then 'If it's Left Hand
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), LHandRM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + LHand    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 10 Then 'If it's Right Upper Leg
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), RULM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + RUL    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 11 Then 'If it's Left Upper Leg
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), LULM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + LUL    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 12 Then 'If it's Right Lower Leg
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), RLLM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + RLL    'Add Offset
-                End If
-                If NodeRootBone(i)(i2) = 13 Then 'If it's Left Lower Leg
-                    NodeFinalPos(i)(i2) = Vector3.TransformVector(NodeBoneOffset(i)(i2), LLLM) 'Apply Rotation
-                    NodeFinalPos(i)(i2) = NodeFinalPos(i)(i2) + LLL    'Add Offset
-                End If
-            Next
-        Next
-
-        'Head direction indicator, on the 3D display
-        HeadVector = New Vector3(0, 0, V3Distance(head, chest) / 2)
-        HeadVector = Vector3.TransformVector(HeadVector, HeadRM)
-        HeadVector = HeadVector + head
-        'Right Hand indicator
-        RHandV1 = New Vector3(V3Distance(head, chest) / 10, V3Distance(head, chest) / 2, 0)
-        RHandV2 = New Vector3(-1 * V3Distance(head, chest) / 10, V3Distance(head, chest) / 2, 0)
-        RHandV1 = Vector3.TransformVector(RHandV1, RHandRM)
-        RHandV2 = Vector3.TransformVector(RHandV2, RHandRM)
-        RHandV1 = RHandV1 + RHand
-        RHandV2 = RHandV2 + RHand
-        'Left Hand indicator
-        LHandV1 = New Vector3(V3Distance(head, chest) / 10, V3Distance(head, chest) / 2, 0)
-        LHandV2 = New Vector3(-1 * V3Distance(head, chest) / 10, V3Distance(head, chest) / 2, 0)
-        LHandV1 = Vector3.TransformVector(LHandV1, LHandRM)
-        LHandV2 = Vector3.TransformVector(LHandV2, LHandRM)
-        LHandV1 = LHandV1 + LHand
-        LHandV2 = LHandV2 + LHand
-
-
         'Outputs!
-        For i = 0 To NodeFinalPos.Count - 1 'For each device
-            For i2 = 0 To NodeFinalPos(i).Count - 1 'For each node on the device
-                NodeOutputs(i)(i2) = False  'Start by turning the output off
-                For i3 = 0 To OtherPlayers.Count - 1    'For each other player
-                    If V3Distance(NodeFinalPos(i)(i2), OPRTDs(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Right Thumb Distal close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPLTDs(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Left Thumb Distal close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPRIDs(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Right Index Distal close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPLIDs(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Left Index Distal close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPHeads(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Head close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPHipss(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Hip close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPRFoots(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Right Foot close?
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), OPLFoots(i3)) <= NodeActivationDistance(i)(i2) Then 'Is there Left Foot close?
-                        NodeOutputs(i)(i2) = True
-                    End If
-                Next
-                If SelfTouch = True Then 'If self touch is enabled
-                    If V3Distance(NodeFinalPos(i)(i2), RID) <= NodeActivationDistance(i)(i2) Then
-                        NodeOutputs(i)(i2) = True
-                    ElseIf V3Distance(NodeFinalPos(i)(i2), LID) <= NodeActivationDistance(i)(i2) Then
-                        NodeOutputs(i)(i2) = True
-                    End If
+        For i = 0 To NodeOutputs.Count - 1 'For each device
+            For i2 = 0 To NodeOutputs(i).Count - 1 'For each node on the device
+                If OSCPSaved = NodeNames(i)(i2) And OSCValueSaved = "True" Then
+                    DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.Green
+                    NodeOutputs(i)(i2) = True
+                End If
+                If OSCPSaved = NodeNames(i)(i2) And OSCValueSaved = "False" Then
+                    DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.White
+                    NodeOutputs(i)(i2) = False  ' output off
                 End If
             Next
         Next
-
 
         If outputtest = True Then   'If output test is on
-            NodeOutputs(DGVDevice.SelectedCells(0).RowIndex)(outputtestindex) = True
+            testednodeD = DGVDevice.SelectedCells(0).RowIndex
+            testednodeN = outputtestindex
+            NodeOutputs(testednodeD)(testednodeN) = True
             outputtestdelay = outputtestdelay + 1    'Add time for each output
-            If outputtestdelay = 50 Then
+            If outputtestdelay = 20 Then
                 outputtestdelay = 0
                 outputtestindex = 0
                 outputtest = False
+                NodeOutputs(testednodeD)(testednodeN) = False
             End If
         Else
             outputtestindex = 0 'If not output testing, set this to zero
         End If
-
 
         'Send to Haptic Devices
         If NodeDeviceNames.Count <> 0 Then 'We got devices?
@@ -751,518 +176,7 @@ Public Class Form1
             Next
         End If
 
-
-        If Enable3D = True Then 'If the Enable 3D is true
-            GlControl1.Invalidate() 'Call the 3D to update
-        End If
         GC.Collect() 'House Keeping
-    End Sub
-
-    'Parse
-    Function Parser()
-        Dim resultvector As Vector3
-        Dim chunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Right Lower Arm (elbow) from string
-        Dim Pieces As String() = chunk.Split(",") 'Split it apart
-        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-            Pieces(0) = Pieces(0).Replace(".", ",")
-            Pieces(1) = Pieces(1).Replace(".", ",")
-            Pieces(2) = Pieces(2).Replace(".", ",")
-        End If
-        resultvector.X = Pieces(0) / 10 'Right Lower Arm (elbow) pieces to the vector3
-        resultvector.Y = Pieces(1) / 10
-        resultvector.Z = Pieces(2) / 10
-        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-        Return resultvector
-    End Function
-
-    'Rotation Parse
-    Function RParser()
-        Dim resultq As Quaternion
-        Dim chunk As String = Readz.Substring(Readz.IndexOf("(") + 1, Readz.IndexOf(")") - Readz.IndexOf("(") - 1) 'Pull out just Head Rotation from string
-        Dim pieces As String() = chunk.Split(",") 'Split it apart
-        If Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = "," Then
-            pieces(0) = pieces(0).Replace(".", ",")
-            pieces(1) = pieces(1).Replace(".", ",")
-            pieces(2) = pieces(2).Replace(".", ",")
-            pieces(3) = pieces(3).Replace(".", ",")
-        End If
-        resultq.X = pieces(0) 'Head Rotation pieces to the vector3
-        resultq.Y = pieces(1)
-        resultq.Z = pieces(2)
-        resultq.W = pieces(3)
-        Readz = Readz.Substring(Readz.IndexOf(")") + 1) 'Split the rest of string for the next set
-        Return resultq
-    End Function
-
-    '3D Distance math
-    Function V3Distance(ByVal V1 As Vector3, ByVal V2 As Vector3)
-        Dim Distance As Single = Math.Sqrt((V2.X - V1.X) ^ 2 + (V2.Y - V1.Y) ^ 2 + (V2.Z - V1.Z) ^ 2)   'Two Vector3 distance formula cause this version of OpenTK is old lol. 
-        Return Math.Abs(Distance)   'Make it always positive cause we're not going for negative here
-    End Function
-
-    'GL-Control loaded
-    Private Sub GlControl1_Load(sender As Object, e As EventArgs) Handles GlControl1.Load
-        GLLoaded = True '3D is loaded
-        GL.ClearColor(Color.Black) 'set the back color
-    End Sub
-
-    'GL-Control main routine, this like, draws the 3D part
-    Private Sub GlControl1_Paint(sender As Object, e As PaintEventArgs) Handles GlControl1.Paint
-        GL.Clear(ClearBufferMask.ColorBufferBit)    'Clear buffers
-        GL.Clear(ClearBufferMask.DepthBufferBit)
-
-        'Basic Setup for viewing
-        Dim perspective As Matrix4 = Matrix4.CreatePerspectiveFieldOfView(1.04, 4 / 3, 0.01, 10000) 'Setup Perspective
-        Dim lookat As Matrix4 = Matrix4.LookAt(zpos, ypos, 0, 0, ypos, 0, 0, 1, 0) 'Setup camera
-        GL.MatrixMode(MatrixMode.Projection) 'Load Perspective
-        GL.LoadIdentity()
-        GL.LoadMatrix(perspective)
-        GL.MatrixMode(MatrixMode.Modelview) 'Load Camera
-        GL.LoadIdentity()
-        GL.LoadMatrix(lookat)
-        GL.Viewport(0, 0, GlControl1.Width, GlControl1.Height) 'Size of window
-        GL.Enable(EnableCap.DepthTest) 'Enable correct Z Drawings
-        GL.DepthFunc(DepthFunction.Less) 'Enable correct Z Drawings
-
-        'Y is up, Z is twards you, X is left and right
-
-        GL.Rotate(-rotateX / 4, 0, 0, 1)    'Mouse rotation of the 3D
-        GL.Rotate(rotateY / 4, 0, 1, 0)
-
-        GL.Rotate(slowrotateY, 0, 1, 0) 'Awwww yiss that slow rotate
-
-        'Draw World Orientation, the 3 color 3 line thing at the bottom
-        GL.LineWidth(3)
-        GL.Begin(BeginMode.Lines)
-        GL.Color3(Color.Red)
-        GL.Vertex3(0, lower, 0)
-        GL.Vertex3(0.3, lower, 0)
-        GL.Color3(Color.Green)
-        GL.Vertex3(0, lower, 0)
-        GL.Vertex3(0, lower + 0.3, 0)
-        GL.Color3(Color.Blue)
-        GL.Vertex3(0, lower, 0)
-        GL.Vertex3(0, lower, 0.3)
-        GL.End()
-
-        'Draw the bones
-        GL.LineWidth(3)
-        GL.Begin(BeginMode.Lines)
-        GL.Color3(Color.White)
-
-        GL.Vertex3(head)
-        GL.Vertex3(chest)
-
-        GL.Vertex3(chest)
-        GL.Vertex3(hips)
-
-        GL.Vertex3(chest)
-        GL.Vertex3(RShoulder)
-
-        GL.Vertex3(chest)
-        GL.Vertex3(LShoulder)
-
-        GL.Vertex3(RShoulder)
-        GL.Vertex3(RLA)
-
-        GL.Vertex3(RLA)
-        GL.Vertex3(RHand)
-
-        GL.Vertex3(LShoulder)
-        GL.Vertex3(LLA)
-
-        GL.Vertex3(LLA)
-        GL.Vertex3(LHand)
-
-        GL.Vertex3(hips)
-        GL.Vertex3(RUL)
-
-        GL.Vertex3(RUL)
-        GL.Vertex3(RLL)
-
-        GL.Vertex3(RLL)
-        GL.Vertex3(RFoot)
-
-        GL.Vertex3(hips)
-        GL.Vertex3(LUL)
-
-        GL.Vertex3(LUL)
-        GL.Vertex3(LLL)
-
-        GL.Vertex3(LLL)
-        GL.Vertex3(LFoot)
-
-        GL.End() 'Finish the begin mode with "end"
-
-        'Draw head direction
-        GL.Color3(Color.Blue)
-        GL.Begin(BeginMode.Lines)
-        GL.Vertex3(head)
-        GL.Vertex3(HeadVector)
-        GL.End()
-
-        'Draw Hands
-        GL.Color3(Color.Blue)
-        GL.Begin(BeginMode.Triangles)
-        GL.Vertex3(RHand)
-        GL.Vertex3(RHandV1)
-        GL.Vertex3(RHandV2)
-        GL.Vertex3(LHand)
-        GL.Vertex3(LHandV1)
-        GL.Vertex3(LHandV2)
-        GL.End()
-
-        'Draw the local player points
-        GL.PointSize(10)
-        GL.Begin(BeginMode.Points)
-        GL.Color3(Color.Blue)
-        GL.Vertex3(head)
-        GL.Vertex3(hips)
-        GL.Vertex3(chest)
-        GL.Vertex3(RShoulder)
-        GL.Vertex3(LShoulder)
-        GL.Vertex3(RLA)
-        GL.Vertex3(LLA)
-        GL.Vertex3(RUL)
-        GL.Vertex3(LUL)
-        GL.Vertex3(RLL)
-        GL.Vertex3(LLL)
-        GL.Vertex3(RFoot)
-        GL.Vertex3(LFoot)
-        GL.Color3(Color.Green)
-        GL.Vertex3(RHand)
-        GL.Vertex3(RFoot)
-        GL.Color3(Color.Red)
-        GL.Vertex3(LHand)
-        GL.Vertex3(LFoot)
-        GL.End() 'Finish the begin mode with "end"
-
-        'Draw the other player points
-        For i = 0 To OtherPlayers.Count - 1
-            GL.PointSize(5)
-            GL.Begin(BeginMode.Points)
-            GL.Color3(Color.LightGray)
-            GL.Vertex3(OPHeads(i))
-            GL.Vertex3(OPHipss(i))
-            GL.Vertex3(OPLFoots(i))
-            GL.Vertex3(OPRFoots(i))
-            GL.Color3(Color.Green)
-            GL.Vertex3(OPRTDs(i))
-            GL.Vertex3(OPRIDs(i))
-            GL.Color3(Color.Red)
-            GL.Vertex3(OPLTDs(i))
-            GL.Vertex3(OPLIDs(i))
-            GL.End() 'Finish the begin mode with "end"
-
-            GL.Begin(BeginMode.Lines)
-            GL.LineWidth(3)
-            GL.Color3(Color.White)
-            GL.Vertex3(OPHeads(i))
-            GL.Vertex3(OPChests(i))
-
-            GL.Vertex3(OPChests(i))
-            GL.Vertex3(OPHipss(i))
-
-            GL.Vertex3(OPChests(i))
-            GL.Vertex3(OPRShoulders(i))
-
-            GL.Vertex3(OPChests(i))
-            GL.Vertex3(OPLShoulders(i))
-
-            GL.Vertex3(OPRShoulders(i))
-            GL.Vertex3(OPRLowerArms(i))
-
-            GL.Vertex3(OPRLowerArms(i))
-            GL.Vertex3(OPRHands(i))
-
-            GL.Vertex3(OPLShoulders(i))
-            GL.Vertex3(OPLLowerArms(i))
-
-            GL.Vertex3(OPLLowerArms(i))
-            GL.Vertex3(OPLHands(i))
-
-            GL.Vertex3(OPHipss(i))
-            GL.Vertex3(OPRUpperLegs(i))
-
-            GL.Vertex3(OPRUpperLegs(i))
-            GL.Vertex3(OPRLowerLegs(i))
-
-            GL.Vertex3(OPRLowerLegs(i))
-            GL.Vertex3(OPRFoots(i))
-
-            GL.Vertex3(OPHipss(i))
-            GL.Vertex3(OPLUpperLegs(i))
-
-            GL.Vertex3(OPLUpperLegs(i))
-            GL.Vertex3(OPLLowerLegs(i))
-
-            GL.Vertex3(OPLLowerLegs(i))
-            GL.Vertex3(OPLFoots(i))
-
-            GL.End()
-        Next
-
-        'Draw Nodes
-        For i2 = 0 To NodeDeviceNames.Count - 1
-            For i = 0 To NodeFinalPos(i2).Count - 1 'This section shifts the nodes to be based off the root bone that they've been defined for
-                If DGVDevice.SelectedCells(0).RowIndex = i2 And DGVNodes.SelectedCells(0).RowIndex = i Then
-                    GL.LineWidth(10)
-                    Dim directionVectorX As New Vector3(NodeActivationDistance(i2)(i) * 2, 0, 0)
-                    Dim directionVectorY As New Vector3(0, NodeActivationDistance(i2)(i) * 2, 0)
-                    Dim directionVectorZ As New Vector3(0, 0, NodeActivationDistance(i2)(i) * 2)
-                    Select Case NodeRootBone(i2)(i)
-                        Case 1
-                            directionVectorX = Vector3.TransformVector(directionVectorX, HeadRM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, HeadRM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, HeadRM)
-                        Case 2
-                            directionVectorX = Vector3.TransformVector(directionVectorX, HipsRM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, HipsRM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, HipsRM)
-                        Case 3
-                            directionVectorX = Vector3.TransformVector(directionVectorX, ChestRM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, ChestRM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, ChestRM)
-                        Case 4
-                            directionVectorX = Vector3.TransformVector(directionVectorX, RShoulderM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, RShoulderM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, RShoulderM)
-                        Case 5
-                            directionVectorX = Vector3.TransformVector(directionVectorX, LShoulderM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, LShoulderM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, LShoulderM)
-                        Case 6
-                            directionVectorX = Vector3.TransformVector(directionVectorX, RLAM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, RLAM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, RLAM)
-                        Case 7
-                            directionVectorX = Vector3.TransformVector(directionVectorX, LLAM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, LLAM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, LLAM)
-                        Case 8
-                            directionVectorX = Vector3.TransformVector(directionVectorX, RHandRM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, RHandRM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, RHandRM)
-                        Case 9
-                            directionVectorX = Vector3.TransformVector(directionVectorX, LHandRM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, LHandRM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, LHandRM)
-                        Case 10
-                            directionVectorX = Vector3.TransformVector(directionVectorX, RULM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, RULM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, RULM)
-                        Case 11
-                            directionVectorX = Vector3.TransformVector(directionVectorX, LULM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, LULM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, LULM)
-                        Case 12
-                            directionVectorX = Vector3.TransformVector(directionVectorX, RLLM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, RLLM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, RLLM)
-                        Case 13
-                            directionVectorX = Vector3.TransformVector(directionVectorX, LLLM)
-                            directionVectorY = Vector3.TransformVector(directionVectorY, LLLM)
-                            directionVectorZ = Vector3.TransformVector(directionVectorZ, LLLM)
-                    End Select
-
-                    Select Case DGVNodes.SelectedCells(0).ColumnIndex   'This is the small colored line that appears on the node when a direction is selected
-                        Case 2
-                            GL.Color3(Color.Red)
-                            GL.Begin(BeginMode.Lines)
-                            GL.Vertex3(NodeFinalPos(i2)(i))
-                            GL.Vertex3(NodeFinalPos(i2)(i) + directionVectorX)
-                            GL.End()
-                        Case 3
-                            GL.Color3(Color.Green)
-                            GL.Begin(BeginMode.Lines)
-                            GL.Vertex3(NodeFinalPos(i2)(i))
-                            GL.Vertex3(NodeFinalPos(i2)(i) + directionVectorY)
-                            GL.End()
-                        Case 4
-                            GL.Color3(Color.Blue)
-                            GL.Begin(BeginMode.Lines)
-                            GL.Vertex3(NodeFinalPos(i2)(i))
-                            GL.Vertex3(NodeFinalPos(i2)(i) + directionVectorZ)
-                            GL.End()
-                    End Select
-                End If
-                GL.LineWidth(1)
-
-                If NodeOutputs(i2)(i) = True Then   'If the node is on, color it light blue vs orange
-                    GL.Color3(Color.Green)
-                ElseIf DGVDevice.SelectedCells(0).RowIndex = i2 And DGVNodes.SelectedCells(0).RowIndex = i Then
-                    GL.Color3(Color.LightBlue)
-                Else
-                    GL.Color3(Color.Orange)
-                End If
-
-                For i3 = 0 To 15 'This following mess creates the lined spheres for the nodes
-                    GL.Begin(BeginMode.LineLoop)
-                    Dim tempangi As Single = (i3 / 15) * 360 * (Math.PI / 180)
-                    Dim yi As Single = Math.Sin(tempangi) * (NodeActivationDistance(i2)(i))
-                    Dim xi As Single = Math.Cos(tempangi)
-                    For i4 = 0 To 15
-                        Dim tempangi2 As Single = (i4 / 15) * 360 * (Math.PI / 180)
-                        Dim xi2 As Single = Math.Cos(tempangi2) * (NodeActivationDistance(i2)(i)) * xi
-                        Dim zi2 As Single = Math.Sin(tempangi2) * (NodeActivationDistance(i2)(i)) * xi
-                        GL.Vertex3(xi2 + NodeFinalPos(i2)(i).X, yi + NodeFinalPos(i2)(i).Y, zi2 + NodeFinalPos(i2)(i).Z)
-                    Next
-                    GL.End()
-                Next
-
-            Next
-        Next
-
-        GL.End() 'Finish the begin mode with "end"
-
-
-
-        'Add Avatar
-        'I like apologize for this, its to get a rough guess at where your avatar body looks like compared to the bones
-        If AvatarLoaded = True Then 'Make sure there's an avatar first
-            GL.Enable(EnableCap.Light0) 'This follwing area makes it mostly transparent
-            GL.Enable(EnableCap.Lighting)
-            GL.ShadeModel(ShadingModel.Smooth)
-            Dim params1() As Single = {0.2F, 0.2F, 0.2F, 1}
-            Dim params2() As Single = {0, 0, 0}
-            GL.LightModel(OpenTK.Graphics.OpenGL.LightModelParameter.LightModelAmbient, params1)
-            GL.Light(OpenTK.Graphics.OpenGL.LightName.Light0, OpenTK.Graphics.OpenGL.LightParameter.Position, params2)
-
-            GL.Enable(EnableCap.Blend)
-            GL.BlendFunc(BlendingFactorSrc.OneMinusConstantColorExt, BlendingFactorDest.One) 'BlendingFactorSrc.OneMinusDstColor, BlendingFactorDest.DstColor)
-
-            GL.Material(MaterialFace.FrontAndBack, MaterialParameter.AmbientAndDiffuse, Color.LightBlue)
-
-            GL.PushMatrix() 'This section rotates it very loosely to the correct spot
-            GL.Translate(0, lower, 0)
-            GL.Rotate(AvatarRotation.X, 1, 0, 0)
-            GL.Rotate(AvatarRotation.Y, 0, 1, 0)
-            GL.Rotate(AvatarRotation.Z, 0, 0, 1)
-            GL.Begin(BeginMode.Triangles)
-
-            For i = 0 To Avatarpoints.Count - 1 Step 3  'This part draws the mesh faces of the avatar
-                GL.Normal3(Avatarnormals(i / 3))
-                GL.Vertex3(Avatarpoints(i))
-                GL.Vertex3(Avatarpoints(i + 1))
-                GL.Vertex3(Avatarpoints(i + 2))
-            Next
-            GL.End()
-            GL.PopMatrix()
-
-            GL.Disable(EnableCap.Light0)
-            GL.Disable(EnableCap.Lighting)
-        End If
-
-        'Finally...
-        GraphicsContext.CurrentContext.VSync = True 'Caps frame rate as to not over run GPU
-        GlControl1.SwapBuffers() 'Takes from the 'GL' and puts into control
-
-    End Sub
-
-    '3D control when you mouse down on the 3D
-    Private Sub GlControl1_MouseDown(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseDown
-        mousecontrol = True 'Set we have moused down
-        If e.Button = MouseButtons.Right Then   'Right click for vertical positioning
-            mousecontroltype = 2
-            mousestartposition = New Point(MousePosition.X - positionX, MousePosition.Y - positionY)
-        ElseIf e.Button = MouseButtons.Left Then 'Left click for rotation
-            mousestartrotate = New Point(MousePosition.X - rotateY, MousePosition.Y - rotateX)
-            mousecontroltype = 1
-        End If
-        slowrotate = False 'Turn off the slow rotate
-    End Sub
-
-    'Mouse movement on 3D
-    Private Sub GlControl1_MouseMove(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseMove
-        If mousecontrol = True Then 'Only if we are actively moving the 3D, or else it lags the program
-
-            If mousecontroltype = 1 Then 'For rotation
-                rotateY = (MousePosition.X - mousestartrotate.X)
-                rotateX = (MousePosition.Y - mousestartrotate.Y)
-                GlControl1.Invalidate() 'Reset the 3D
-            ElseIf mousecontroltype = 2 Then 'For vertical position
-                ypos = (MousePosition.Y - mousestartposition.Y) / 400
-                GlControl1.Invalidate() 'Reset the 3D
-            End If
-
-        End If
-
-    End Sub
-
-    'Mouse has ended 3D control
-    Private Sub GlControl1_MouseUp(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseUp
-        mousecontrol = False 'No more mousing
-        mousecontroltype = 0 'No more controling
-        GlControl1.Invalidate() 'Update the 3D
-    End Sub
-
-    'Mouse event for 3D zoom
-    Private Sub GlControl1_MouseWheel(sender As Object, e As MouseEventArgs) Handles GlControl1.MouseWheel
-        zpos = zpos + (e.Delta / 1000) 'e.delta being the scoll amount, which is like... 3 by default I think
-        If zpos < 0 Then 'Put a minimum on it
-            zpos = 0
-        End If
-
-        GlControl1.Invalidate() 'Reset the 3D
-    End Sub
-
-    'For reading in an avatar's STL
-    Public Sub fileimportSTL() 'First you should know, this requires the normals as well
-        Dim pointsstring() As Byte  'Bytes of STL file
-
-        GC.Collect()    'Do this cause file reading is odd
-        pointsstring = System.IO.File.ReadAllBytes(Avatarlocation)  'Read bytes from file
-        GC.Collect()
-
-        Avatarcolors = Color.Cyan   'Color, but I don't think it maters
-        Dim pointcount As UInt32 = BitConverter.ToUInt32(pointsstring, 80)  'Get total points
-        Dim NX, NY, NZ, X1, X2, X3, Y1, Y2, Y3, Z1, Z2, Z3 As Single
-
-        For i = 84 To pointsstring.Length - 51 Step 50
-
-            NX = BitConverter.ToSingle(pointsstring, i + 0)
-            NY = BitConverter.ToSingle(pointsstring, i + 4)
-            NZ = BitConverter.ToSingle(pointsstring, i + 8)
-
-            Avatarnormals.Add(New Vector3(NX, NY, NZ))  'Get normals (which way face faces!)
-
-            X1 = BitConverter.ToSingle(pointsstring, i + 12)
-            Y1 = BitConverter.ToSingle(pointsstring, i + 16)
-            Z1 = BitConverter.ToSingle(pointsstring, i + 20)
-
-            X2 = BitConverter.ToSingle(pointsstring, i + 24)
-            Y2 = BitConverter.ToSingle(pointsstring, i + 28)
-            Z2 = BitConverter.ToSingle(pointsstring, i + 32)
-
-            X3 = BitConverter.ToSingle(pointsstring, i + 36)
-            Y3 = BitConverter.ToSingle(pointsstring, i + 40)
-            Z3 = BitConverter.ToSingle(pointsstring, i + 44)
-
-            Avatarpoints.Add(New Vector3(X1, Y1, Z1))  'Add points to lists
-            Avatarpoints.Add(New Vector3(X2, Y2, Z2))
-            Avatarpoints.Add(New Vector3(X3, Y3, Z3))
-        Next
-        AvatarLoaded = True 'Load Avatar into drawing
-    End Sub
-
-    'Generic Avatar Rotates
-    Private Sub X90ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles X90ToolStripMenuItem1.Click
-        AvatarRotation.X = AvatarRotation.X - 90
-    End Sub
-    Private Sub Y90ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles Y90ToolStripMenuItem.Click
-        AvatarRotation.Y = AvatarRotation.Y + 90
-    End Sub
-    Private Sub Y90ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles Y90ToolStripMenuItem1.Click
-        AvatarRotation.Y = AvatarRotation.Y - 90
-    End Sub
-    Private Sub Z90ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles Z90ToolStripMenuItem.Click
-        AvatarRotation.Z = AvatarRotation.Z + 90
-    End Sub
-    Private Sub Z90ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles Z90ToolStripMenuItem1.Click
-        AvatarRotation.Z = AvatarRotation.Z - 90
-    End Sub
-    Private Sub X90ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles X90ToolStripMenuItem.Click
-        AvatarRotation.X = AvatarRotation.X + 90
     End Sub
 
     'Delete Device
@@ -1273,10 +187,7 @@ Public Class Form1
                     NodeDeviceNames.RemoveAt(DGVDevice.SelectedCells(0).RowIndex) 'Remove device from lists
                     NodeDeviceConnection.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeOutputs.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
-                    NodeBoneOffset.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
-                    NodeFinalPos.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
-                    NodeRootBone.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
-                    NodeActivationDistance.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
+                    NodeNames.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     NodeForce.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     DGVDevice.Rows.RemoveAt(DGVDevice.SelectedCells(0).RowIndex)
                     DGVNodeUpdate() 'update nodes
@@ -1315,47 +226,27 @@ Public Class Form1
         For i = 0 To NodeOutputs(DGVDevice.SelectedCells(0).RowIndex).Count - 1 'After nodes cleared, reload
             DGVNodes.Rows.Add()
             DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(0).Value = i
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(1).Value = RootBones(NodeRootBone(DGVDevice.SelectedCells(0).RowIndex)(i))
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(2).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).X
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(3).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).Y
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(4).Value = NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(i).Z
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(5).Value = NodeActivationDistance(DGVDevice.SelectedCells(0).RowIndex)(i)
-            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(6).Value = NodeForce(DGVDevice.SelectedCells(0).RowIndex)(i)
+            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(1).Value = NodeNames(DGVDevice.SelectedCells(0).RowIndex)(i)
+            DGVNodes.Rows(DGVNodes.Rows.Count - 1).Cells(2).Value = NodeForce(DGVDevice.SelectedCells(0).RowIndex)(i)
         Next
         DGVupdating = False 'This prevents the cell value changed event from happening cause its all original data
     End Sub
 
-    'Save bone
+    'Save DGV
     Private Sub DGVNodes_CellValueChanged(sender As Object, e As DataGridViewCellEventArgs) Handles DGVNodes.CellValueChanged
         If DGVupdating = False Then 'Check we're not just getting the original data
             If e.RowIndex <> -1 Then
-                NodeRootBone(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = RootBones.IndexOf(DGVNodes.Rows(e.RowIndex).Cells(1).Value) 'If root bone changed, save that
+                NodeNames(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(1).Value 'If Name changed, save that
                 Try
-                    NodeBoneOffset(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = New Vector3(DGVNodes.Rows(e.RowIndex).Cells(2).Value, DGVNodes.Rows(e.RowIndex).Cells(3).Value, DGVNodes.Rows(e.RowIndex).Cells(4).Value) 'If offset changed, save that
+                    NodeForce(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(2).Value
                     DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.White
-                    DGVNodes.Rows(e.RowIndex).Cells(3).Style.BackColor = Color.White
-                    DGVNodes.Rows(e.RowIndex).Cells(4).Style.BackColor = Color.White
-                Catch ex As Exception
-                    DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.Red 'If the math conversion failed, set it to red so user can fix
-                    DGVNodes.Rows(e.RowIndex).Cells(3).Style.BackColor = Color.Red
-                    DGVNodes.Rows(e.RowIndex).Cells(4).Style.BackColor = Color.Red
-                End Try
-                Try
-                    NodeActivationDistance(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(5).Value
-                    DGVNodes.Rows(e.RowIndex).Cells(5).Style.BackColor = Color.White
-                Catch ex As Exception
-                    DGVNodes.Rows(e.RowIndex).Cells(5).Style.BackColor = Color.Red
-                End Try
-                Try
-                    NodeForce(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(6).Value
-                    DGVNodes.Rows(e.RowIndex).Cells(6).Style.BackColor = Color.White
-                    If DGVNodes.Rows(e.RowIndex).Cells(6).Value < 0 Then
-                        DGVNodes.Rows(e.RowIndex).Cells(6).Value = 0
-                    ElseIf DGVNodes.Rows(e.RowIndex).Cells(6).Value > 100 Then
-                        DGVNodes.Rows(e.RowIndex).Cells(6).Value = 100
+                    If DGVNodes.Rows(e.RowIndex).Cells(2).Value < 0 Then
+                        DGVNodes.Rows(e.RowIndex).Cells(2).Value = 0
+                    ElseIf DGVNodes.Rows(e.RowIndex).Cells(2).Value > 100 Then
+                        DGVNodes.Rows(e.RowIndex).Cells(2).Value = 100
                     End If
                 Catch ex As Exception
-                    DGVNodes.Rows(e.RowIndex).Cells(6).Style.BackColor = Color.Red
+                    DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.Red
                 End Try
                 Settingschanged = True 'Something changed, prompt at exit for save
             End If
@@ -1412,10 +303,7 @@ Public Class Form1
         NodeDeviceNames.Clear()
         NodeOutputs.Clear()
         NodeDeviceConnection.Clear()
-        NodeRootBone.Clear()
-        NodeBoneOffset.Clear()
-        NodeFinalPos.Clear()
-        NodeActivationDistance.Clear()
+        NodeNames.Clear()
         NodeForce.Clear()
 
         DGVDevice.Rows.Clear()
@@ -1440,23 +328,10 @@ Public Class Form1
                 'NodeDeviceConnection.Add(readstring(2 + linesread))
                 NodeDeviceConnection.Add(0)
                 linesread = linesread + 2
-                NodeRootBone.Add(New List(Of Integer))
-                NodeBoneOffset.Add(New List(Of OpenTK.Vector3))
-                NodeFinalPos.Add(New List(Of OpenTK.Vector3))
-                NodeActivationDistance.Add(New List(Of Single))
+                NodeNames.Add(New List(Of String))
                 NodeForce.Add(New List(Of Integer))
                 For i2 = 0 To NodeOutputs(i).Count - 1
-                    NodeRootBone(NodeDeviceNames.Count - 1).Add(readstring(linesread))
-                    linesread = linesread + 1
-                Next
-                For i2 = 0 To NodeOutputs(i).Count - 1
-                    vectorsplit = readstring(linesread).Split(",")
-                    NodeBoneOffset(NodeDeviceNames.Count - 1).Add(New Vector3(vectorsplit(0), vectorsplit(1), vectorsplit(2)))
-                    NodeFinalPos(NodeDeviceNames.Count - 1).Add(New OpenTK.Vector3(0, 0, 0))
-                    linesread = linesread + 1
-                Next
-                For i2 = 0 To NodeOutputs(i).Count - 1
-                    NodeActivationDistance(NodeDeviceNames.Count - 1).Add(readstring(linesread))
+                    NodeNames(NodeDeviceNames.Count - 1).Add(readstring(linesread))
                     linesread = linesread + 1
                 Next
                 For i2 = 0 To NodeOutputs(i).Count - 1
@@ -1490,15 +365,8 @@ Public Class Form1
         For i = 0 To NodeDeviceNames.Count - 1
             WriteList.Add(NodeDeviceNames(i))
             WriteList.Add(NodeOutputs(i).Count)
-            'WriteList.Add(NodeDeviceConnection(i))
-            For i2 = 0 To NodeOutputs(i).Count - 1
-                WriteList.Add(NodeRootBone(i)(i2).ToString)
-            Next
-            For i2 = 0 To NodeOutputs(i).Count - 1
-                WriteList.Add(NodeBoneOffset(i)(i2).X & "," & NodeBoneOffset(i)(i2).Y & "," & NodeBoneOffset(i)(i2).Z)
-            Next
-            For i2 = 0 To NodeOutputs(i).Count - 1
-                WriteList.Add(NodeActivationDistance(i)(i2))
+            For i2 = 0 To NodeNames(i).Count - 1
+                WriteList.Add(NodeNames(i)(i2).ToString)
             Next
             For i2 = 0 To NodeForce(i).Count - 1
                 WriteList.Add(NodeForce(i)(i2))
@@ -1523,11 +391,6 @@ Public Class Form1
         Me.Close()  'Exit Program
     End Sub
 
-    'Slow rotate enable
-    Private Sub SpinToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SpinToolStripMenuItem.Click
-        slowrotate = True
-    End Sub
-
     'Setup device on wifi show dialog
     Private Sub SetWifiOnDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SetWifiOnDeviceToolStripMenuItem.Click
         DeviceWifi.Show()
@@ -1542,17 +405,230 @@ Public Class Form1
         End If
     End Sub
 
-    'Enable Self Touch Button
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        If SelfTouch = False Then
-            SelfTouch = True
-            Button1.BackColor = Color.Green
-            Button1.ForeColor = Color.White
-        Else
-            SelfTouch = False
-            Button1.BackColor = Color.LightGray
-            Button1.ForeColor = Color.Black
-        End If
+    Private Sub OSCTimer_Tick(sender As Object, e As EventArgs) Handles OSCTimer.Tick
+        Try
+            Dim OSCbytes() As Byte = OSCR.Receive(OSCep) 'Bytes from OSC
+            Dim value(20) As Byte 'Going to store OSC recieved value, in bytes
+            Dim param(100) As Byte 'Going to store OSC recieved parameter name
+            Dim valuei As Integer = 0 'Indexing for pulling the value out
+            Dim parami As Integer = 0 'Indexing for pulling the param name out
+            For i = 0 To OSCbytes.Length - 1 'For all the bytes...
+                If OSCbytes(i) = 44 Or valuei > 0 Then 'look for the first comma (ASCII 44)
+                    value(valuei) = OSCbytes(i) 'once you found it, save the value into a new byte set
+                    valuei = valuei + 1 'index it up
+                Else
+                    param(parami) = OSCbytes(i) 'If you haven't found it yet, save the bytes for parameter name
+                    parami = parami + 1 'index that up
+                End If
+            Next
+
+            'Param
+            OSCP = System.Text.Encoding.ASCII.GetString(param) 'Convert the parameter name bytes to a string
+            OSCP = OSCP.Trim(vbNullChar) ' Get rid of any extra null characters
+
+            'Value
+            'comma then type, 102 = f for float, 105 = i for int
+            If value(1) = 102 Then 'If this is a floating point value (-1.0 to 1.0)
+                Dim floatvalue(3) As Byte 'Seperate those bytes
+                For i = 0 To 3
+                    floatvalue(3 - i) = value(4 + i) 'Reverse order them cause why not?
+                Next
+                Dim valuefloat As Single = BitConverter.ToSingle(floatvalue, 0) 'Use fancy windows magic to convert it lol
+                OSCvalue = valuefloat.ToString 'Save it to a string for displaying
+            End If
+            If value(1) = 105 Then 'If its a integer value
+                Dim valueint As Integer = value(7) 'Pull that int value out
+                OSCvalue = valueint.ToString 'Save it to string
+            End If
+            If value(1) = 84 Then 'If its a boolean, and an ASCII 'T' for true then save it as a string for display
+                OSCvalue = "True"
+            End If
+            If value(1) = 70 Then 'If its a boolean, and an ASCII 'F' for false then save it as a string for display
+                OSCvalue = "False"
+            End If
+
+            'Remove any VRChat default values that get sent
+            Dim Defaultparam As Boolean = False
+            If OSCP.Contains("IsLocal") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Viseme") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Voice") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureLeft") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureRight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureLeftWeight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureRightWeight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("AngularY") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityX") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityY") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityZ") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Upright") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Grounded") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Seated") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("AFK") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("TrackingType") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VRMode") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("MuteSelf") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("InStation") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Expression") Then
+                Defaultparam = True
+            End If
+
+            OSCP = OSCP.Substring(OSCP.LastIndexOf("/") + 1)
+
+            If Defaultparam = False Then
+                OSCPSaved = OSCP
+                OSCValueSaved = OSCvalue
+                RichTextBox1.AppendText(OSCP & " - " & OSCvalue) 'Display any unique params
+                RichTextBox1.AppendText(Chr(13)) 'Slap a new line
+                RichTextBox1.ScrollToCaret()
+            End If
+
+        Catch ex As Exception
+            'RichTextBox1.AppendText("Data wait")
+            'RichTextBox1.AppendText(Chr(13)) 'Slap a new line
+            'RichTextBox1.ScrollToCaret()
+        End Try
+    End Sub
+
+    Private Sub SelectOSCFolderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SelectOSCFolderToolStripMenuItem.Click
+        MsgBox("Looking for the folder: C:\Users\<Your name>\AppData\LocalLow\VRChat\VRChat\OSC")
+        FolderBrowserDialog1.SelectedPath = AppDatafolder
+        FolderBrowserDialog1.ShowDialog()
+    End Sub
+    Private Sub FolderBrowserDialog1_HelpRequest(sender As Object, e As EventArgs) Handles FolderBrowserDialog1.HelpRequest
+        AppDatafolder = FolderBrowserDialog1.SelectedPath
+        ReadinJSONs()
+    End Sub
+
+    Public Sub ReadinJSONs()
+        Try
+            Dim vrcusers() As String = System.IO.Directory.GetDirectories(AppDatafolder)
+            For i = 0 To vrcusers.Count - 1
+                Dim vrcuseravdir() As String = System.IO.Directory.GetDirectories(vrcusers(i))
+                For i2 = 0 To vrcuseravdir.Count - 1
+                    Dim vrcuseravs() As String = System.IO.Directory.GetFiles(vrcuseravdir(i2))
+                    For i3 = 0 To vrcuseravs.Count - 1
+                        avatarfiles.Add(vrcuseravs(i3))
+                    Next
+                Next
+            Next
+            My.Settings.DefFolder = AppDatafolder
+        Catch ex As Exception
+            MsgBox("Error reading JSON files")
+        End Try
+
+        Dim avatarfileindex As Integer = 0
+        Try
+            For i = 0 To avatarfiles.Count - 1
+                avatarfileindex = i
+
+                Dim readstring() As String  'Define the string to read into
+                Dim WriteList As New List(Of String) 'Define file to write back to
+
+                GC.Collect()    'Garbage collection probably correct right?
+                readstring = System.IO.File.ReadAllLines(avatarfiles(i)) 'Read the file into the string array!
+                GC.Collect()    'I mean, its probably the worst thing I could do here
+                For i2 = 0 To readstring.Count - 1
+
+                    If readstring(i2).Contains("{") Then
+                        If readstring(i2 + 1).Contains("""name"":") Then
+
+                            'Remove any VRChat default values that get sent
+                            Dim Defaultparam As Boolean = False
+                            If readstring(i2 + 1).Contains("IsLocal") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Viseme") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Voice") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("GestureLeft") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("GestureRight") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("GestureLeftWeight") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("GestureRightWeight") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("AngularY") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("VelocityX") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("VelocityY") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("VelocityZ") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Upright") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Grounded") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Seated") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("AFK") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("TrackingType") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("VRMode") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("MuteSelf") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("InStation") Then
+                                Defaultparam = True
+                            ElseIf readstring(i2 + 1).Contains("Expression") Then
+                                Defaultparam = True
+                            End If
+
+                            If Defaultparam = False Then
+                                WriteList.Add(readstring(i2))
+                            End If
+
+                            If Defaultparam = True Then
+                                i2 = i2 + 6
+                            End If
+
+                        Else
+                            WriteList.Add(readstring(i2))
+                        End If
+                    Else
+                        WriteList.Add(readstring(i2))
+                    End If
+                Next
+
+                'Write back file
+                'But First, fix a JSON file thing to remove a comma
+                WriteList(WriteList.Count - 3) = "    }"
+
+                Dim writestring() As String = WriteList.ToArray 'Convert List To array for file writer
+
+                GC.Collect()    'Some Garbage collection cause I got superstition that this helps
+                System.IO.File.WriteAllLines(avatarfiles(i), writestring) 'Write that file from the array.
+                GC.Collect()    'More Garbage collection cause it can't hurt right?
+
+
+            Next
+
+        Catch ex As Exception
+            MsgBox("Error when modifying file: " & avatarfiles(avatarfileindex))
+        End Try
+
+
     End Sub
 
 End Class

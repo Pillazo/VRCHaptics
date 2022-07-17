@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "0b71cc58-b583-4348-b5bf-62002d5b8914": {
+      "ProjectGuid": "0b71cc58-b583-4348-b5bf-62002d5b8914",
+      "DisplayName": "VRChat Haptics",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

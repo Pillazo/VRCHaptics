@@ -50,14 +50,6 @@
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\OpenTK.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenTK.GLControl, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\OpenTK.GLControl.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -105,12 +97,6 @@
     <Compile Include="DeviceEditor.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="AvatarList.Designer.vb">
-      <DependentUpon>AvatarList.vb</DependentUpon>
-    </Compile>
-    <Compile Include="AvatarList.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -121,17 +107,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="WhiteList.Designer.vb">
-      <DependentUpon>WhiteList.vb</DependentUpon>
-    </Compile>
-    <Compile Include="WhiteList.vb">
-      <SubType>Form</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="AvatarList.resx">
-      <DependentUpon>AvatarList.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="DeviceWifi.resx">
       <DependentUpon>DeviceWifi.vb</DependentUpon>
     </EmbeddedResource>
@@ -146,9 +123,6 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WhiteList.resx">
-      <DependentUpon>WhiteList.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
