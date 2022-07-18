@@ -13,6 +13,7 @@ Public Class Form1
     Dim OSCValueSaved As String = "" 'Value for saving to
     Dim AppDatafolder As String = ""
     Dim avatarfiles As New List(Of String)
+    Dim testz As Integer = 0
 
     Public NodeDeviceNames As New List(Of String)    'Name of Device for reference like 'head' or 'right arm' kinda thing
     Public NodeOutputs As New List(Of List(Of Boolean)) 'Output of device
@@ -130,11 +131,11 @@ Public Class Form1
         For i = 0 To NodeOutputs.Count - 1 'For each device
             For i2 = 0 To NodeOutputs(i).Count - 1 'For each node on the device
                 If OSCPSaved = NodeNames(i)(i2) And OSCValueSaved = "True" Then
-                    DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.Green
+                    'DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.Green
                     NodeOutputs(i)(i2) = True
                 End If
                 If OSCPSaved = NodeNames(i)(i2) And OSCValueSaved = "False" Then
-                    DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.White
+                    'DGVNodes.Rows(i2).Cells(0).Style.BackColor = Color.White
                     NodeOutputs(i)(i2) = False  ' output off
                 End If
             Next
@@ -173,6 +174,8 @@ Public Class Form1
                     End If
                 Next
                 Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
+                testz = testz + 1
+                Me.Text = testz
             Next
         End If
 

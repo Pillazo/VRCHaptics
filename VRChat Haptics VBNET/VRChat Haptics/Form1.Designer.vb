@@ -167,25 +167,25 @@ Partial Class Form1
         'LoadDeviceNodeDescriptionToolStripMenuItem
         '
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Name = "LoadDeviceNodeDescriptionToolStripMenuItem"
-        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Text = "Load Settings"
         '
         'SaveDeviceNodeDescriptionToolStripMenuItem
         '
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Name = "SaveDeviceNodeDescriptionToolStripMenuItem"
-        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Text = "Save Settings"
         '
         'CloseToolStripMenuItem
         '
         Me.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
-        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
         Me.CloseToolStripMenuItem.Text = "Close"
         '
         'SelectOSCFolderToolStripMenuItem
         '
         Me.SelectOSCFolderToolStripMenuItem.Name = "SelectOSCFolderToolStripMenuItem"
-        Me.SelectOSCFolderToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.SelectOSCFolderToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
         Me.SelectOSCFolderToolStripMenuItem.Text = "Select OSC Folder"
         '
         'DeviceToolStripMenuItem
@@ -247,7 +247,7 @@ Partial Class Form1
         '
         'OSCTimer
         '
-        Me.OSCTimer.Interval = 1
+        Me.OSCTimer.Interval = 10
         '
         'FolderBrowserDialog1
         '
