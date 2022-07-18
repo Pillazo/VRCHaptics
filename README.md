@@ -1,6 +1,6 @@
 # VRCHaptics
  VRC Haptics
-A haptics set of software and hardware to give haptic feedback to VRChat on more than just your controllers. Old version used Udon in your world pushes out the player's bone positions. New version now uses a specific melon loader DLL to do the same thing but now for any world. A VB.NET program then grabs the positions and then determines to turn on or off vibrating nodes you've mounted to yourself wherever!
+A haptics set of software and hardware to give haptic feedback to VRChat on more than just your controllers. Old version used a melon-loader side-loaded dll file to pull bone positions out and set haptics. New version now uses the approved OSC system, by setting up the avatar in unity with 'VRC Contact Recievers'. A VB.NET program then grabs the OSC commands and then determines to turn on or off vibrating nodes you've mounted to yourself wherever!
 
 A working example video here: https://youtu.be/_tgKSILLgIA
 
