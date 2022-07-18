@@ -13,7 +13,6 @@ Public Class Form1
     Dim OSCValueSaved As String = "" 'Value for saving to
     Dim AppDatafolder As String = ""
     Dim avatarfiles As New List(Of String)
-    Dim testz As Integer = 0
 
     Public NodeDeviceNames As New List(Of String)    'Name of Device for reference like 'head' or 'right arm' kinda thing
     Public NodeOutputs As New List(Of List(Of Boolean)) 'Output of device
@@ -174,8 +173,6 @@ Public Class Form1
                     End If
                 Next
                 Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
-                testz = testz + 1
-                Me.Text = testz
             Next
         End If
 
