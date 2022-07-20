@@ -50,7 +50,6 @@ Partial Class Form1
         Me.SFDSettings = New System.Windows.Forms.SaveFileDialog()
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.OSCTimer = New System.Windows.Forms.Timer(Me.components)
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
@@ -61,7 +60,7 @@ Partial Class Form1
         '
         'MainTimer
         '
-        Me.MainTimer.Interval = 50
+        Me.MainTimer.Interval = 20
         '
         'DGVNodes
         '
@@ -245,10 +244,6 @@ Partial Class Form1
         Me.Label1.TabIndex = 58
         Me.Label1.Text = "OSC History"
         '
-        'OSCTimer
-        '
-        Me.OSCTimer.Interval = 10
-        '
         'FolderBrowserDialog1
         '
         '
@@ -302,7 +297,6 @@ Partial Class Form1
     Friend WithEvents Test As DataGridViewButtonColumn
     Friend WithEvents RichTextBox1 As RichTextBox
     Friend WithEvents Label1 As Label
-    Friend WithEvents OSCTimer As Timer
     Friend WithEvents SelectOSCFolderToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
 End Class

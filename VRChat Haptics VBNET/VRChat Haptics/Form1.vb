@@ -71,7 +71,7 @@ Public Class Form1
         OSCR.Client.ReceiveTimeout = 10 'How long to wait before moving on
         OSCR.Client.Blocking = False 'Don't allow it to block processing
         OSCep = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 0) 'Defining endpoint, used in OSC Comms
-        MainTimer.Interval = 50 'Main timer should be about 50ms, so not to overload network i guess
+        MainTimer.Interval = 20 'Main timer should be about 20ms, so not to overload network i guess
 
         'Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"), 10)    'Set multicast IP address, matches on controller
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
@@ -86,7 +86,6 @@ Public Class Form1
             SettingsFileLoad() 'Load it!
         End If
 
-        OSCTimer.Enabled = True 'Enable the OSC read in timer
         MainTimer.Enabled = True 'Enable that main timer
 
     End Sub
@@ -117,6 +116,108 @@ Public Class Form1
         For i = 0 To NodeDeviceNames.Count + 1 'For each controller we have, hit the UDP that many times... plus 1, so we get all names out there
             udprcv()    'Call UDP recieve
         Next
+
+        Try
+            Dim OSCbytes() As Byte = OSCR.Receive(OSCep) 'Bytes from OSC
+            Dim value(20) As Byte 'Going to store OSC recieved value, in bytes
+            Dim param(100) As Byte 'Going to store OSC recieved parameter name
+            Dim valuei As Integer = 0 'Indexing for pulling the value out
+            Dim parami As Integer = 0 'Indexing for pulling the param name out
+            For i = 0 To OSCbytes.Length - 1 'For all the bytes...
+                If OSCbytes(i) = 44 Or valuei > 0 Then 'look for the first comma (ASCII 44)
+                    value(valuei) = OSCbytes(i) 'once you found it, save the value into a new byte set
+                    valuei = valuei + 1 'index it up
+                Else
+                    param(parami) = OSCbytes(i) 'If you haven't found it yet, save the bytes for parameter name
+                    parami = parami + 1 'index that up
+                End If
+            Next
+
+            'Param
+            OSCP = System.Text.Encoding.ASCII.GetString(param) 'Convert the parameter name bytes to a string
+            OSCP = OSCP.Trim(vbNullChar) ' Get rid of any extra null characters
+
+            'Value
+            'comma then type, 102 = f for float, 105 = i for int
+            If value(1) = 102 Then 'If this is a floating point value (-1.0 to 1.0)
+                Dim floatvalue(3) As Byte 'Seperate those bytes
+                For i = 0 To 3
+                    floatvalue(3 - i) = value(4 + i) 'Reverse order them cause why not?
+                Next
+                Dim valuefloat As Single = BitConverter.ToSingle(floatvalue, 0) 'Use fancy windows magic to convert it lol
+                OSCvalue = valuefloat.ToString 'Save it to a string for displaying
+            End If
+            If value(1) = 105 Then 'If its a integer value
+                Dim valueint As Integer = value(7) 'Pull that int value out
+                OSCvalue = valueint.ToString 'Save it to string
+            End If
+            If value(1) = 84 Then 'If its a boolean, and an ASCII 'T' for true then save it as a string for display
+                OSCvalue = "True"
+            End If
+            If value(1) = 70 Then 'If its a boolean, and an ASCII 'F' for false then save it as a string for display
+                OSCvalue = "False"
+            End If
+
+            'Remove any VRChat default values that get sent
+            Dim Defaultparam As Boolean = False
+            If OSCP.Contains("IsLocal") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Viseme") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Voice") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureLeft") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureRight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureLeftWeight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("GestureRightWeight") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("AngularY") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityX") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityY") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VelocityZ") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Upright") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Grounded") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Seated") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("AFK") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("TrackingType") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("VRMode") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("MuteSelf") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("InStation") Then
+                Defaultparam = True
+            ElseIf OSCP.Contains("Expression") Then
+                Defaultparam = True
+            End If
+
+            OSCP = OSCP.Substring(OSCP.LastIndexOf("/") + 1)
+
+            If Defaultparam = False Then
+                OSCPSaved = OSCP
+                OSCValueSaved = OSCvalue
+                RichTextBox1.AppendText(OSCP & " - " & OSCvalue) 'Display any unique params
+                RichTextBox1.AppendText(Chr(13)) 'Slap a new line
+                RichTextBox1.ScrollToCaret()
+            End If
+
+        Catch ex As Exception
+            'RichTextBox1.AppendText("Data wait")
+            'RichTextBox1.AppendText(Chr(13)) 'Slap a new line
+            'RichTextBox1.ScrollToCaret()
+        End Try
+
 
         For i = 0 To NodeDeviceNames.Count - 1 'for each device we have defined
             NodeDeviceConnection(i) = NodeDeviceConnection(i) + 1   'Add 1 to a timer, which is reset if we get a name packet from the device
@@ -178,6 +279,8 @@ Public Class Form1
 
         GC.Collect() 'House Keeping
     End Sub
+
+
 
     'Delete Device
     Private Sub RemoveDeviceToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RemoveDeviceToolStripMenuItem.Click
@@ -403,109 +506,6 @@ Public Class Form1
                 SFDSettings.ShowDialog()    'If yes
             End If
         End If
-    End Sub
-
-    Private Sub OSCTimer_Tick(sender As Object, e As EventArgs) Handles OSCTimer.Tick
-        Try
-            Dim OSCbytes() As Byte = OSCR.Receive(OSCep) 'Bytes from OSC
-            Dim value(20) As Byte 'Going to store OSC recieved value, in bytes
-            Dim param(100) As Byte 'Going to store OSC recieved parameter name
-            Dim valuei As Integer = 0 'Indexing for pulling the value out
-            Dim parami As Integer = 0 'Indexing for pulling the param name out
-            For i = 0 To OSCbytes.Length - 1 'For all the bytes...
-                If OSCbytes(i) = 44 Or valuei > 0 Then 'look for the first comma (ASCII 44)
-                    value(valuei) = OSCbytes(i) 'once you found it, save the value into a new byte set
-                    valuei = valuei + 1 'index it up
-                Else
-                    param(parami) = OSCbytes(i) 'If you haven't found it yet, save the bytes for parameter name
-                    parami = parami + 1 'index that up
-                End If
-            Next
-
-            'Param
-            OSCP = System.Text.Encoding.ASCII.GetString(param) 'Convert the parameter name bytes to a string
-            OSCP = OSCP.Trim(vbNullChar) ' Get rid of any extra null characters
-
-            'Value
-            'comma then type, 102 = f for float, 105 = i for int
-            If value(1) = 102 Then 'If this is a floating point value (-1.0 to 1.0)
-                Dim floatvalue(3) As Byte 'Seperate those bytes
-                For i = 0 To 3
-                    floatvalue(3 - i) = value(4 + i) 'Reverse order them cause why not?
-                Next
-                Dim valuefloat As Single = BitConverter.ToSingle(floatvalue, 0) 'Use fancy windows magic to convert it lol
-                OSCvalue = valuefloat.ToString 'Save it to a string for displaying
-            End If
-            If value(1) = 105 Then 'If its a integer value
-                Dim valueint As Integer = value(7) 'Pull that int value out
-                OSCvalue = valueint.ToString 'Save it to string
-            End If
-            If value(1) = 84 Then 'If its a boolean, and an ASCII 'T' for true then save it as a string for display
-                OSCvalue = "True"
-            End If
-            If value(1) = 70 Then 'If its a boolean, and an ASCII 'F' for false then save it as a string for display
-                OSCvalue = "False"
-            End If
-
-            'Remove any VRChat default values that get sent
-            Dim Defaultparam As Boolean = False
-            If OSCP.Contains("IsLocal") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Viseme") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Voice") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("GestureLeft") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("GestureRight") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("GestureLeftWeight") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("GestureRightWeight") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("AngularY") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("VelocityX") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("VelocityY") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("VelocityZ") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Upright") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Grounded") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Seated") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("AFK") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("TrackingType") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("VRMode") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("MuteSelf") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("InStation") Then
-                Defaultparam = True
-            ElseIf OSCP.Contains("Expression") Then
-                Defaultparam = True
-            End If
-
-            OSCP = OSCP.Substring(OSCP.LastIndexOf("/") + 1)
-
-            If Defaultparam = False Then
-                OSCPSaved = OSCP
-                OSCValueSaved = OSCvalue
-                RichTextBox1.AppendText(OSCP & " - " & OSCvalue) 'Display any unique params
-                RichTextBox1.AppendText(Chr(13)) 'Slap a new line
-                RichTextBox1.ScrollToCaret()
-            End If
-
-        Catch ex As Exception
-            'RichTextBox1.AppendText("Data wait")
-            'RichTextBox1.AppendText(Chr(13)) 'Slap a new line
-            'RichTextBox1.ScrollToCaret()
-        End Try
     End Sub
 
     Private Sub SelectOSCFolderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SelectOSCFolderToolStripMenuItem.Click
