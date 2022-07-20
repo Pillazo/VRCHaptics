@@ -202,7 +202,11 @@ Public Class Form1
                 Defaultparam = True
             End If
 
-            OSCP = OSCP.Substring(OSCP.LastIndexOf("/") + 1)
+            OSCP = OSCP.Substring(OSCP.LastIndexOf("/") + 1) 'Get just the param name
+
+            If Defaultparam = True Then 'New avatar probably, remove the default tags from it
+                ReadinJSONs()
+            End If
 
             If Defaultparam = False Then
                 OSCPSaved = OSCP
