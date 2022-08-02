@@ -34,6 +34,11 @@ Public Class Form1
     Public Settingschanged As Boolean = False   'A setting has been changed, this'll prompt the user for saving
     Dim VRCopen As Boolean = False  'VRChat is open
 
+    Public OctoSlimeMode As Boolean = False    'Enable OctoSlime Mode
+    Dim OctoSlimeUDP As New System.Net.Sockets.UdpClient(7777) 'Create UDP client with correct port
+    Public OctoNode As New List(Of List(Of Integer)) 'Place to put the octoslime node address
+    Public OctoMotor As New List(Of List(Of Integer)) 'Place to p'ut the octoslime motor addresses
+
 #Region "Settings File"
     'Version number (int)
     'Count of Devices (int)
@@ -75,10 +80,11 @@ Public Class Form1
 
         'Multicaster.JoinMulticastGroup(System.Net.IPAddress.Parse("239.80.8.5"), 10)    'Set multicast IP address, matches on controller
         Multicaster.Client.Blocking = False 'Dont allow it to block processing
-        Multicaster.Client.ReceiveTimeout = 100 'Timeout
+        Multicaster.Client.ReceiveTimeout = 50 'Timeout
         Multicaster.MulticastLoopback = False
         Multicaster.DontFragment = True
         Multicaster.EnableBroadcast = True
+
 
         'Try to load last settings
         If IO.File.Exists(My.Settings.SettingsLoc) = True Then
@@ -100,8 +106,8 @@ Public Class Form1
             For i = 0 To NodeDeviceNames.Count - 1  'For each controller we have defined in our program...
                 If UDPString.Length >= NodeDeviceNames(i).Length And UDPString.Contains("^P&") = False Then    'Does the recieved UDP packet match the name in length at least?
                     If UDPString.Substring(0, NodeDeviceNames(i).Length) = NodeDeviceNames(i) Then 'If yes, does the name itself match?
-                        DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green    'Yes found it color the box
-                        DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
+                        'DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.Green    'Yes found it color the box
+                        'DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.Green
                         NodeDeviceConnection(i) = 0 'Reset timeout counter
                     End If
                 End If
@@ -217,17 +223,15 @@ Public Class Form1
             End If
 
         Catch ex As Exception
-            'RichTextBox1.AppendText("Data wait")
-            'RichTextBox1.AppendText(Chr(13)) 'Slap a new line
-            'RichTextBox1.ScrollToCaret()
         End Try
 
 
         For i = 0 To NodeDeviceNames.Count - 1 'for each device we have defined
             NodeDeviceConnection(i) = NodeDeviceConnection(i) + 1   'Add 1 to a timer, which is reset if we get a name packet from the device
             If NodeDeviceConnection(i) > 300 Then   'If its gotten past 3 seconds of no name..
-                DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.White 'Then mark it as default white
-                DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.White
+                'Will have to come back to this color marking later because of lag, calling form stuff during a quick timer is no bueno
+                'DGVDevice.Rows(i).Cells(0).Style.BackColor = Color.White 'Then mark it as default white 
+                'DGVDevice.Rows(i).Cells(1).Style.BackColor = Color.White
             End If
         Next
 
@@ -260,26 +264,57 @@ Public Class Form1
             outputtestindex = 0 'If not output testing, set this to zero
         End If
 
-        'Send to Haptic Devices
-        If NodeDeviceNames.Count <> 0 Then 'We got devices?
-            For i = 0 To NodeDeviceNames.Count - 1 'For each device we've got defined
-                Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)    'End point stuff for the UDP multicast
-                Dim stringz As String = NodeDeviceNames(i) & "^P&" 'Carret is for limiting Name from type of mode and ampersand is for transistion to outputs
-                Dim Prefix() As Byte = System.Text.Encoding.ASCII.GetBytes(stringz) 'Convert from chars to bytes (programmers should realize this is silly) Wait bytes are characters? Always has been... gunshot
-                Dim sendbytes(Prefix.Length + 19) As Byte   'Define byte length
-                For i2 = 0 To Prefix.Length - 1
-                    sendbytes(i2) = Prefix(i2) 'Shift in the characters
+        'Send to Pillazo's Haptic Devices
+        If OctoSlimeMode = False Then
+            If NodeDeviceNames.Count <> 0 Then 'We got devices?
+                For i = 0 To NodeDeviceNames.Count - 1 'For each device we've got defined
+                    Dim ep As System.Net.IPEndPoint = New System.Net.IPEndPoint(System.Net.IPAddress.Parse("239.80.8.5"), MulticastPort)    'End point stuff for the UDP multicast
+                    Dim stringz As String = NodeDeviceNames(i) & "^P&" 'Carret is for limiting Name from type of mode and ampersand is for transistion to outputs
+                    Dim Prefix() As Byte = System.Text.Encoding.ASCII.GetBytes(stringz) 'Convert from chars to bytes (programmers should realize this is silly) Wait bytes are characters? Always has been... gunshot
+                    Dim sendbytes(Prefix.Length + 19) As Byte   'Define byte length
+                    For i2 = 0 To Prefix.Length - 1
+                        sendbytes(i2) = Prefix(i2) 'Shift in the characters
+                    Next
+                    For i2 = 0 To NodeOutputs(i).Count - 1
+                        If NodeOutputs(i)(i2) = True Then 'We outputing this output outputedly?
+                            sendbytes(Prefix.Length + i2) = NodeForce(i)(i2) * 2.55 'Shift in output data for the device to use
+                        Else
+                            sendbytes(Prefix.Length + i2) = 0   'Else turn it off
+                        End If
+                    Next
+                    Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
                 Next
-                For i2 = 0 To NodeOutputs(i).Count - 1
-                    If NodeOutputs(i)(i2) = True Then 'We outputing this output outputedly?
-                        sendbytes(Prefix.Length + i2) = NodeForce(i)(i2) * 2.55 'Shift in output data for the device to use
-                    Else
-                        sendbytes(Prefix.Length + i2) = 0   'Else turn it off
-                    End If
-                Next
-                Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
-            Next
+            End If
         End If
+
+        'OctoSlime Packet
+        If OctoSlimeMode = True Then
+            If NodeDeviceNames.Count <> 0 Then
+                For i = 0 To NodeDeviceNames.Count - 1 'For each device we've got defined.
+                    Dim ep As System.Net.IPEndPoint
+                    Try
+                        ep = New System.Net.IPEndPoint(System.Net.IPAddress.Parse(NodeDeviceNames(i)), 6969)
+                    Catch ex As Exception
+                        MsgBox("IP Address parsing error, retry and restart timer (File Menu)")
+                    End Try
+                    'Compile octoslime packet
+                    Dim sendbytes(4) As Byte
+                    sendbytes(0) = 204 '0xCC
+                    sendbytes(1) = i + 1 'The octoslime node
+                    For i2 = 0 To NodeOutputs(i).Count - 1
+                        sendbytes(2) = OctoNode(i)(i2)
+                        sendbytes(3) = OctoMotor(i)(i2)
+                        If NodeOutputs(i)(i2) = True Then 'We outputing this output outputedly?
+                            sendbytes(4) = NodeForce(i)(i2) * 2.55 'Shift in output data for the device to use
+                        Else
+                            sendbytes(4) = 0   'Else turn it off
+                        End If
+                        Multicaster.Send(sendbytes, sendbytes.Length, ep)   'SEND TO THE DEVICE!
+                    Next
+                Next
+            End If
+        End If
+
 
         GC.Collect() 'House Keeping
     End Sub
@@ -355,6 +390,8 @@ Public Class Form1
                 Catch ex As Exception
                     DGVNodes.Rows(e.RowIndex).Cells(2).Style.BackColor = Color.Red
                 End Try
+                OctoNode(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(4).Value
+                OctoMotor(DGVDevice.SelectedCells(0).RowIndex)(e.RowIndex) = DGVNodes.Rows(e.RowIndex).Cells(5).Value
                 Settingschanged = True 'Something changed, prompt at exit for save
             End If
         End If
@@ -635,4 +672,27 @@ Public Class Form1
 
     End Sub
 
+    Private Sub OctoSlimeModeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles OctoSlimeModeToolStripMenuItem.Click
+        If OctoSlimeMode = False Then
+            OctoSlimeMode = True
+            OctoSlimeModeToolStripMenuItem.Checked = True
+            DGVDevice.Columns(1).HeaderText = "IP Address"
+            DGVNodes.Columns(4).Visible = True
+            DGVNodes.Columns(5).Visible = True
+            'DGVNodes.Columns(1).AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+            'DGVNodes.Columns(1).Width = 150
+
+        Else
+            OctoSlimeMode = False
+            OctoSlimeModeToolStripMenuItem.Checked = False
+            DGVDevice.Columns(1).HeaderText = "Name"
+            DGVNodes.Columns(4).Visible = False
+            DGVNodes.Columns(5).Visible = False
+            'DGVNodes.Columns(1).AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+        End If
+    End Sub
+
+    Private Sub RestartTimerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RestartTimerToolStripMenuItem.Click
+        MainTimer.Enabled = True
+    End Sub
 End Class

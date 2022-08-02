@@ -26,10 +26,6 @@ Partial Class Form1
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
         Me.MainTimer = New System.Windows.Forms.Timer(Me.components)
         Me.DGVNodes = New System.Windows.Forms.DataGridView()
-        Me.Output = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.NodeName = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Force = New System.Windows.Forms.DataGridViewTextBoxColumn()
-        Me.Test = New System.Windows.Forms.DataGridViewButtonColumn()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
         Me.DGVDevice = New System.Windows.Forms.DataGridView()
@@ -51,6 +47,14 @@ Partial Class Form1
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
+        Me.OctoSlimeModeToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.Output = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.NodeName = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Force = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Test = New System.Windows.Forms.DataGridViewButtonColumn()
+        Me.Node = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.Motor = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.RestartTimerToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         CType(Me.DGVNodes, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -67,38 +71,12 @@ Partial Class Form1
         Me.DGVNodes.AllowUserToAddRows = False
         Me.DGVNodes.AllowUserToDeleteRows = False
         Me.DGVNodes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.DGVNodes.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.Output, Me.NodeName, Me.Force, Me.Test})
+        Me.DGVNodes.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.Output, Me.NodeName, Me.Force, Me.Test, Me.Node, Me.Motor})
         Me.DGVNodes.Location = New System.Drawing.Point(5, 19)
         Me.DGVNodes.Name = "DGVNodes"
         Me.DGVNodes.RowHeadersVisible = False
         Me.DGVNodes.Size = New System.Drawing.Size(338, 267)
         Me.DGVNodes.TabIndex = 51
-        '
-        'Output
-        '
-        Me.Output.HeaderText = "#"
-        Me.Output.Name = "Output"
-        Me.Output.ReadOnly = True
-        Me.Output.Width = 20
-        '
-        'NodeName
-        '
-        Me.NodeName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill
-        Me.NodeName.HeaderText = "Node Name"
-        Me.NodeName.Name = "NodeName"
-        '
-        'Force
-        '
-        Me.Force.HeaderText = "Force"
-        Me.Force.Name = "Force"
-        Me.Force.Width = 35
-        '
-        'Test
-        '
-        Me.Test.HeaderText = "Test"
-        Me.Test.Name = "Test"
-        Me.Test.Text = "Test"
-        Me.Test.Width = 35
         '
         'GroupBox1
         '
@@ -158,7 +136,7 @@ Partial Class Form1
         '
         'FileToolStripMenuItem
         '
-        Me.FileToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.LoadDeviceNodeDescriptionToolStripMenuItem, Me.SaveDeviceNodeDescriptionToolStripMenuItem, Me.CloseToolStripMenuItem, Me.SelectOSCFolderToolStripMenuItem})
+        Me.FileToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.LoadDeviceNodeDescriptionToolStripMenuItem, Me.SaveDeviceNodeDescriptionToolStripMenuItem, Me.CloseToolStripMenuItem, Me.SelectOSCFolderToolStripMenuItem, Me.OctoSlimeModeToolStripMenuItem, Me.RestartTimerToolStripMenuItem})
         Me.FileToolStripMenuItem.Name = "FileToolStripMenuItem"
         Me.FileToolStripMenuItem.Size = New System.Drawing.Size(37, 20)
         Me.FileToolStripMenuItem.Text = "File"
@@ -166,25 +144,25 @@ Partial Class Form1
         'LoadDeviceNodeDescriptionToolStripMenuItem
         '
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Name = "LoadDeviceNodeDescriptionToolStripMenuItem"
-        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.LoadDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.LoadDeviceNodeDescriptionToolStripMenuItem.Text = "Load Settings"
         '
         'SaveDeviceNodeDescriptionToolStripMenuItem
         '
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Name = "SaveDeviceNodeDescriptionToolStripMenuItem"
-        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.SaveDeviceNodeDescriptionToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveDeviceNodeDescriptionToolStripMenuItem.Text = "Save Settings"
         '
         'CloseToolStripMenuItem
         '
         Me.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem"
-        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.CloseToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.CloseToolStripMenuItem.Text = "Close"
         '
         'SelectOSCFolderToolStripMenuItem
         '
         Me.SelectOSCFolderToolStripMenuItem.Name = "SelectOSCFolderToolStripMenuItem"
-        Me.SelectOSCFolderToolStripMenuItem.Size = New System.Drawing.Size(167, 22)
+        Me.SelectOSCFolderToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SelectOSCFolderToolStripMenuItem.Text = "Select OSC Folder"
         '
         'DeviceToolStripMenuItem
@@ -197,25 +175,25 @@ Partial Class Form1
         'AddDeviceToolStripMenuItem
         '
         Me.AddDeviceToolStripMenuItem.Name = "AddDeviceToolStripMenuItem"
-        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.AddDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.AddDeviceToolStripMenuItem.Text = "Add Device"
         '
         'EditDeviceToolStripMenuItem
         '
         Me.EditDeviceToolStripMenuItem.Name = "EditDeviceToolStripMenuItem"
-        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.EditDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.EditDeviceToolStripMenuItem.Text = "Edit Device"
         '
         'RemoveDeviceToolStripMenuItem
         '
         Me.RemoveDeviceToolStripMenuItem.Name = "RemoveDeviceToolStripMenuItem"
-        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.RemoveDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.RemoveDeviceToolStripMenuItem.Text = "Remove Device"
         '
         'SetWifiOnDeviceToolStripMenuItem
         '
         Me.SetWifiOnDeviceToolStripMenuItem.Name = "SetWifiOnDeviceToolStripMenuItem"
-        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(169, 22)
+        Me.SetWifiOnDeviceToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SetWifiOnDeviceToolStripMenuItem.Text = "Set Wifi on Device"
         '
         'OFDSettings
@@ -246,6 +224,59 @@ Partial Class Form1
         '
         'FolderBrowserDialog1
         '
+        '
+        'OctoSlimeModeToolStripMenuItem
+        '
+        Me.OctoSlimeModeToolStripMenuItem.Name = "OctoSlimeModeToolStripMenuItem"
+        Me.OctoSlimeModeToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.OctoSlimeModeToolStripMenuItem.Text = "OctoSlime Mode"
+        '
+        'Output
+        '
+        Me.Output.HeaderText = "#"
+        Me.Output.Name = "Output"
+        Me.Output.ReadOnly = True
+        Me.Output.Width = 20
+        '
+        'NodeName
+        '
+        Me.NodeName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill
+        Me.NodeName.HeaderText = "Node Name"
+        Me.NodeName.Name = "NodeName"
+        '
+        'Force
+        '
+        Me.Force.HeaderText = "Force"
+        Me.Force.Name = "Force"
+        Me.Force.Width = 35
+        '
+        'Test
+        '
+        Me.Test.HeaderText = "Test"
+        Me.Test.Name = "Test"
+        Me.Test.Text = "Test"
+        Me.Test.Width = 35
+        '
+        'Node
+        '
+        Me.Node.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None
+        Me.Node.HeaderText = "Node#"
+        Me.Node.Name = "Node"
+        Me.Node.Visible = False
+        Me.Node.Width = 50
+        '
+        'Motor
+        '
+        Me.Motor.HeaderText = "Motor#"
+        Me.Motor.Name = "Motor"
+        Me.Motor.Visible = False
+        Me.Motor.Width = 50
+        '
+        'RestartTimerToolStripMenuItem
+        '
+        Me.RestartTimerToolStripMenuItem.Name = "RestartTimerToolStripMenuItem"
+        Me.RestartTimerToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.RestartTimerToolStripMenuItem.Text = "Restart Timer"
         '
         'Form1
         '
@@ -291,12 +322,16 @@ Partial Class Form1
     Friend WithEvents SFDSettings As SaveFileDialog
     Friend WithEvents CloseToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SetWifiOnDeviceToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents Output As DataGridViewTextBoxColumn
-    Friend WithEvents NodeName As DataGridViewTextBoxColumn
-    Friend WithEvents Force As DataGridViewTextBoxColumn
-    Friend WithEvents Test As DataGridViewButtonColumn
     Friend WithEvents RichTextBox1 As RichTextBox
     Friend WithEvents Label1 As Label
     Friend WithEvents SelectOSCFolderToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
+    Friend WithEvents OctoSlimeModeToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents Output As DataGridViewTextBoxColumn
+    Friend WithEvents NodeName As DataGridViewTextBoxColumn
+    Friend WithEvents Force As DataGridViewTextBoxColumn
+    Friend WithEvents Test As DataGridViewButtonColumn
+    Friend WithEvents Node As DataGridViewTextBoxColumn
+    Friend WithEvents Motor As DataGridViewTextBoxColumn
+    Friend WithEvents RestartTimerToolStripMenuItem As ToolStripMenuItem
 End Class
